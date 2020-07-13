@@ -31,6 +31,11 @@ option (USE_QWT
           "Use Qwt to build Plot tab." NO)
 option (USE_READLINE
 		  "Use Readline library for CLI input." YES)
+option(USE_GCOV 
+       "Create a GCov-enabled build." ON)
+option(CODE_COVERAGE 
+       "Enable coverage reporting" ON)
+
 
 if (BUILD_GUI)
 add_subdirectory (gui)
@@ -51,6 +56,27 @@ add_definitions (-DNO_READLINE)
 else (NOT USE_READLINE)
 set (NO_READLINE "FALSE")
 endif (NOT USE_READLINE)
+
+if(CODE_COVERAGE AND CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+  # Add required flags (GCC & LLVM/Clang)
+  target_compile_options(coverage_config INTERFACE
+    -O0        # no optimization
+    -g         # generate debug info
+    --coverage # sets all required flags
+  )
+  if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.13)
+    target_link_options(coverage_config INTERFACE --coverage)
+  else()
+    target_link_libraries(coverage_config INTERFACE --coverage)
+  endif()
+endif(CODE_COVERAGE AND CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+
+if (USE_GCOV)
+  set(GCC_COVERAGE_COMPILE_FLAGS "-fprofile-arcs -ftest-coverage")
+  set(GCC_COVERAGE_LINK_FLAGS    "-lgcov")
+endif()
+set( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} ${GCC_COVERAGE_COMPILE_FLAGS}" )
+set( CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} ${GCC_COVERAGE_LINK_FLAGS}" )
 
 add_subdirectory (src)
 
