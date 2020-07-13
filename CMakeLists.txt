@@ -57,6 +57,9 @@ else (NOT USE_READLINE)
 set (NO_READLINE "FALSE")
 endif (NOT USE_READLINE)
 
+# Code Coverage Configuration
+add_library(coverage_config INTERFACE)
+
 if(CODE_COVERAGE AND CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
   # Add required flags (GCC & LLVM/Clang)
   target_compile_options(coverage_config INTERFACE
