@@ -3,6 +3,7 @@
 [![Build Status](https://travis-ci.com/phScholz/AZURE2.svg?token=Pqu1U2LEwBHgCJpiVM1f&branch=master)](https://travis-ci.com/phScholz/AZURE2) 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/8150ba411b2445fbbf9cffb9b61909cd)](https://www.codacy.com?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=phScholz/AZURE2&amp;utm_campaign=Badge_Grade)
+[![codecov](https://codecov.io/gh/phScholz/AZURE2/branch/master/graph/badge.svg?token=WfVDllGHjP)](https://codecov.io/gh/phScholz/AZURE2)
 
 
 Thank you for choosing AZURE2 to for all your R-Matrix needs.
