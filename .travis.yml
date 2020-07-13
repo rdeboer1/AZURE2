@@ -29,10 +29,10 @@ install:
   - cd ${TRAVIS_BUILD_DIR}
   - bash build.sh
 
-script:
+#script:
   # run the project
   #- bash tests.sh
 
-after_success:
-  - lcov -d . -c -o coverage.info
-  - codecov
+#after_success:
+#  - lcov -d . -c -o coverage.info
+#  - codecov
