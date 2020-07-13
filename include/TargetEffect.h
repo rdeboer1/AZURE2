@@ -35,7 +35,7 @@ class TargetEffect {
   std::vector<int> GetSegmentsList() const;
   Equation *GetStoppingPowerEq();
   ///The multiple of sigma above and below centroid energy to use as integration range
-  static const double convolutionRange=3.;
+  static constexpr double convolutionRange=3.;
  private:
   bool isConvolution_;
   bool isTargetIntegration_;
