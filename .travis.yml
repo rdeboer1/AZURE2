@@ -29,9 +29,9 @@ install:
   - cd ${TRAVIS_BUILD_DIR}
   - bash build.sh
 
-#script:
+script:
   # run the project
-  #- bash tests.sh
+  - ./build/AZURE2
 
 #after_success:
 #  - lcov -d . -c -o coverage.info
