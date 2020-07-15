@@ -33,6 +33,6 @@ script:
   # run the project
   - ./build/AZURE2
 
-#after_success:
-#  - lcov -d . -c -o coverage.info
-#  - codecov
+after_success:
+  - lcov -d . -c -o coverage.info
+  - codecov
