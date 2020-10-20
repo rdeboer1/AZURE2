@@ -2,7 +2,7 @@
 #define ADDLEVELDIALOG_H
 
 #include <QDialog>
-#include <QtGui>
+#include <QtWidgets>
 
 QT_BEGIN_NAMESPACE
 

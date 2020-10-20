@@ -76,3 +76,8 @@ GSL_PATH [dir] - If GSL is in a non-standard path, this will add the directory t
 
 After changing options, execute [make clean] and then step 3 above to build/rebuild AZURE2.  
 
+
+
+**Qt5.X on Ubuntu 20.04**
+
+Install libqwt-qt5-dev libqt5svg5-dev

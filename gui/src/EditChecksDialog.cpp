@@ -2,7 +2,7 @@
 #include "EditChecksDialog.h"
 
 EditChecksDialog::EditChecksDialog(QWidget *parent) : QDialog(parent) {
-  compoundCheckCombo=new QComboBox;
+	compoundCheckCombo=new QComboBox;
   compoundCheckCombo->addItem(tr("None"));
   compoundCheckCombo->addItem(tr("Screen"));
   compoundCheckCombo->addItem(tr("File"));

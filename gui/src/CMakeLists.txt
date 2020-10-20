@@ -1,4 +1,4 @@
-find_package (Qt4 4.4 REQUIRED)
+find_package (Qt5 COMPONENTS Widgets REQUIRED)
 IF( USE_QWT )
 find_package (Qwt REQUIRED)
 ENDIF( USE_QWT )
@@ -42,7 +42,7 @@ set (AZURESETUP_HEADERS ${AZURESETUP_HEADERS} ../include/PlotTab.h ../include/AZ
 add_definitions(-DUSE_QWT)
 ENDIF( USE_QWT )
 
-include (${QT_USE_FILE})
+#include (${QT_USE_FILE})
 add_definitions(${QT_DEFINITIONS})
 
 if (APPLE)
@@ -52,15 +52,19 @@ if (WIN32)
 add_definitions(-DWIN_SPACING)
 endif (WIN32)
 
-QT4_ADD_RESOURCES(AZURESETUP_SOURCES ${AZURESETUP_RCCS})
-QT4_WRAP_CPP(AZURESETUP_HEADERS_MOC ${AZURESETUP_HEADERS})
+# SuperSubatomic - commented this
+#QT5_ADD_RESOURCES(AZURESETUP_SOURCES ${AZURESETUP_RCCS})
+QT5_WRAP_CPP(AZURESETUP_HEADERS_MOC ${AZURESETUP_HEADERS})
 
 add_library(AZURESetup ${AZURESETUP_SOURCES} ${AZURESETUP_HEADERS_MOC})
 
+# SuperSubatomic - added this
+target_link_libraries (AZURESetup Qt5::Widgets)
+
 set (TEMP_VAR AZURESetup )
 IF( USE_QWT )
-FIND_LIBRARY( QtSvg_LIBRARY NAMES QtSvg QtSvg4 PATHS ${QT_LIBRARY_DIR} )
-set (TEMP_VAR ${TEMP_VAR} ${Qwt6_Qt4_LIBRARY} ${QtSvg_LIBRARY} )
+FIND_LIBRARY( QtSvg_LIBRARY NAMES QtSvg QtSvg5 Qt5Svg Qt5Svg5 PATHS ${QT_LIBRARY_DIR} )
+set (TEMP_VAR ${TEMP_VAR} ${Qwt6_Qt5_LIBRARY} ${QtSvg_LIBRARY} )
 ENDIF( USE_QWT )
 set (TEMP_VAR ${TEMP_VAR} ${QT_LIBRARIES})
 
