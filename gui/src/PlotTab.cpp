@@ -1,3 +1,13 @@
+#include <QVBoxLayout>
+#include <QGridLayout>
+#include <QGroupBox>
+#include <QComboBox>
+#include <QRadioButton>
+#include <QCheckBox>
+#include <QPushButton>
+#include <QCheckBox>
+#include <QListView>
+
 #include "PlotTab.h"
 #include "Config.h"
 #include "AZUREPlot.h"
@@ -5,7 +15,6 @@
 #include "SegmentsTestModel.h"
 #include "RichTextDelegate.h"
 #include "InfoDialog.h"
-#include <QtGui>
 #include <iostream>
 
 QVariant SegTestProxyModel::data(const QModelIndex& index, int role) const {

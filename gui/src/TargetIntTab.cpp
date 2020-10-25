@@ -1,6 +1,14 @@
+#include <QGridLayout>
+#include <QCheckBox>
+#include <QSpacerItem>
+#include <QLineEdit>
+#include <QSpinBox>
+#include <QPushButton>
+#include <QTextStream>
+#include <QHeaderView>
+
 #include "TargetIntTab.h"
 #include "InfoDialog.h"
-#include <QtGui>
 
 
 TargetIntTab::TargetIntTab(QWidget *parent) : QWidget(parent) {
@@ -16,12 +24,12 @@ TargetIntTab::TargetIntTab(QWidget *parent) : QWidget(parent) {
   targetIntView->setColumnHidden(9,true);
   targetIntView->setColumnHidden(11,true);
   targetIntView->setColumnWidth(0,27);
-  targetIntView->horizontalHeader()->setResizeMode(0,QHeaderView::Fixed);
-  targetIntView->horizontalHeader()->setResizeMode(1,QHeaderView::Stretch);
-  targetIntView->horizontalHeader()->setResizeMode(2,QHeaderView::Stretch);
-  targetIntView->horizontalHeader()->setResizeMode(3,QHeaderView::Stretch);
-  targetIntView->horizontalHeader()->setResizeMode(5,QHeaderView::Stretch);
-  targetIntView->horizontalHeader()->setResizeMode(10,QHeaderView::Stretch);
+  targetIntView->horizontalHeader()->setSectionResizeMode(0,QHeaderView::Fixed);
+  targetIntView->horizontalHeader()->setSectionResizeMode(1,QHeaderView::Stretch);
+  targetIntView->horizontalHeader()->setSectionResizeMode(2,QHeaderView::Stretch);
+  targetIntView->horizontalHeader()->setSectionResizeMode(3,QHeaderView::Stretch);
+  targetIntView->horizontalHeader()->setSectionResizeMode(5,QHeaderView::Stretch);
+  targetIntView->horizontalHeader()->setSectionResizeMode(10,QHeaderView::Stretch);
   targetIntView->setSelectionBehavior(QAbstractItemView::SelectRows);
   targetIntView->setSelectionMode(QAbstractItemView::SingleSelection);
   targetIntView->setEditTriggers(QAbstractItemView::NoEditTriggers);
@@ -151,13 +159,13 @@ void TargetIntTab::editLine() {
   int numParameters = var.toInt();
   i=targetIntModel->index(index.row(),9,QModelIndex());
   var=targetIntModel->data(i,Qt::EditRole);
-  QList<double> parameters = qVariantValue<QList<double> >(var);
+  QList<double> parameters = var.value<QList<double> >();
   i=targetIntModel->index(index.row(),10,QModelIndex());
   var=targetIntModel->data(i,Qt::EditRole);
   bool isQCoefficient = var.toBool();
   i=targetIntModel->index(index.row(),11,QModelIndex());
   var=targetIntModel->data(i,Qt::EditRole);
-  QList<double> qCoefficients = qVariantValue<QList<double> >(var);  
+  QList<double> qCoefficients = var.value<QList<double> >();  
 
   AddTargetIntDialog aDialog;
   aDialog.setWindowTitle(tr("Edit an Experimental Effect Line"));

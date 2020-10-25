@@ -1,3 +1,16 @@
+#include <QTextEdit>
+#include <QMessageBox>
+#include <QScrollBar>
+#include <QFileDialog>
+#include <QMenu>
+#include <QMenuBar>
+#include <QRadioButton>
+#include <QAction>
+#include <QActionGroup>
+#include <QSettings>
+#include <QTextStream>
+#include <QDesktopServices>
+
 #include "AZURESetup.h"
 #include "EditChecksDialog.h"
 #include "EditDirsDialog.h"
@@ -6,6 +19,7 @@
 #include "EditOptionsDialog.h"
 #include "AZUREMainThread.h"
 #include "AboutAZURE2Dialog.h"
+
 #ifdef USE_QWT
 #include "PlotTab.h"
 #endif

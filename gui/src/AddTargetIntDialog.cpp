@@ -1,4 +1,14 @@
-#include <QtGui>
+#include <QLineEdit>
+#include <QSpinBox>
+#include <QCheckBox>
+#include <QTableWidget>
+#include <QHBoxLayout>
+#include <QLabel>
+#include <QGroupBox>
+#include <QHeaderView>
+#include <QPushButton>
+
+
 #include "AddTargetIntDialog.h"
 
 AddTargetIntDialog::AddTargetIntDialog(QWidget *parent) : QDialog(parent) {
@@ -32,8 +42,8 @@ AddTargetIntDialog::AddTargetIntDialog(QWidget *parent) : QDialog(parent) {
   parametersTable->verticalHeader()->hide();
   parametersTable->verticalHeader()->setHighlightSections(false);
   parametersTable->horizontalHeader()->setHighlightSections(false);
-  parametersTable->horizontalHeader()->setResizeMode(0,QHeaderView::Stretch);
-  parametersTable->horizontalHeader()->setResizeMode(1,QHeaderView::Stretch);
+  parametersTable->horizontalHeader()->setSectionResizeMode(0,QHeaderView::Stretch);
+  parametersTable->horizontalHeader()->setSectionResizeMode(1,QHeaderView::Stretch);
   parametersTable->setShowGrid(false);
   connect(parametersTable,SIGNAL(cellChanged(int,int)),this,SLOT(parameterChanged(int,int)));
   QStringList labelList;
@@ -56,8 +66,8 @@ AddTargetIntDialog::AddTargetIntDialog(QWidget *parent) : QDialog(parent) {
   qCoefficientTable->verticalHeader()->hide();
   qCoefficientTable->verticalHeader()->setHighlightSections(false);
   qCoefficientTable->horizontalHeader()->setHighlightSections(false);
-  qCoefficientTable->horizontalHeader()->setResizeMode(0,QHeaderView::Stretch);
-  qCoefficientTable->horizontalHeader()->setResizeMode(1,QHeaderView::Stretch);
+  qCoefficientTable->horizontalHeader()->setSectionResizeMode(0,QHeaderView::Stretch);
+  qCoefficientTable->horizontalHeader()->setSectionResizeMode(1,QHeaderView::Stretch);
   qCoefficientTable->setShowGrid(false);
   connect(qCoefficientTable,SIGNAL(cellChanged(int,int)),this,SLOT(qCoefficientChanged(int,int)));
   QStringList qlabelList;

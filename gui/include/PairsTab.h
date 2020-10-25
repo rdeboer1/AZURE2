@@ -4,6 +4,11 @@
 #include <QWidget>
 #include <QItemSelection>
 #include <QSignalMapper>
+#include <QTableView>
+#include <QPushButton>
+#include <QSignalMapper>
+#include <QPointer>
+
 #include "PairsModel.h"
 #include "AddPairDialog.h"
 

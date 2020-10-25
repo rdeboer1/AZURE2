@@ -78,6 +78,10 @@ After changing options, execute [make clean] and then step 3 above to build/rebu
 
 
 
-**Qt5.X on Ubuntu 20.04**
+**Qt5**
 
 Install libqwt-qt5-dev libqt5svg5-dev
+
+Probably only some of the below are required...
+
+Install qt5-default qtscript5-dev

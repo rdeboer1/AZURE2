@@ -1,4 +1,5 @@
-#include <QtGui>
+#include <QHeaderView>
+
 #include "LevelsTab.h"
 #include "LevelsHeaderView.h"
 #include "AddLevelDialog.h"
@@ -20,10 +21,10 @@ LevelsTab::LevelsTab(QWidget *parent) : QWidget(parent) {
   levelsView->horizontalHeader()->setHighlightSections(false);
   levelsView->setColumnWidth(0,60);
   levelsView->setColumnWidth(1,40);
-  levelsView->horizontalHeader()->setResizeMode(0,QHeaderView::Fixed);
-  levelsView->horizontalHeader()->setResizeMode(1,QHeaderView::Fixed);
-  levelsView->horizontalHeader()->setResizeMode(2,QHeaderView::Stretch);
-  levelsView->horizontalHeader()->setResizeMode(4,QHeaderView::Stretch);
+  levelsView->horizontalHeader()->setSectionResizeMode(0,QHeaderView::Fixed);
+  levelsView->horizontalHeader()->setSectionResizeMode(1,QHeaderView::Fixed);
+  levelsView->horizontalHeader()->setSectionResizeMode(2,QHeaderView::Stretch);
+  levelsView->horizontalHeader()->setSectionResizeMode(4,QHeaderView::Stretch);
   levelsView->setColumnHidden(3,true);
   levelsView->setSelectionBehavior(QAbstractItemView::SelectRows);
   levelsView->setSelectionMode(QAbstractItemView::SingleSelection);
@@ -68,10 +69,10 @@ LevelsTab::LevelsTab(QWidget *parent) : QWidget(parent) {
   channelsView->horizontalHeader()->setHighlightSections(false);
   channelsView->setColumnWidth(0,40);
   channelsView->setColumnWidth(2,160);
-  channelsView->horizontalHeader()->setResizeMode(0,QHeaderView::Fixed);
-  channelsView->horizontalHeader()->setResizeMode(2,QHeaderView::Fixed);
-  channelsView->horizontalHeader()->setResizeMode(3,QHeaderView::Stretch);
-  channelsView->horizontalHeader()->setResizeMode(4,QHeaderView::Stretch);
+  channelsView->horizontalHeader()->setSectionResizeMode(0,QHeaderView::Fixed);
+  channelsView->horizontalHeader()->setSectionResizeMode(2,QHeaderView::Fixed);
+  channelsView->horizontalHeader()->setSectionResizeMode(3,QHeaderView::Stretch);
+  channelsView->horizontalHeader()->setSectionResizeMode(4,QHeaderView::Stretch);
   channelsView->setColumnHidden(1,true);
   channelsView->setColumnHidden(5,true);
   channelsView->setColumnHidden(6,true);

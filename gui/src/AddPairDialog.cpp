@@ -1,3 +1,13 @@
+#include <QComboBox>
+#include <QGridLayout>
+#include <QSpacerItem>
+#include <QLabel>
+#include <QLineEdit>
+#include <QPushButton>
+#include <QGroupBox>
+#include <QCheckBox>
+
+
 #include "AddPairDialog.h"
 
 AddPairDialog::AddPairDialog(QWidget *parent) : QDialog(parent) {

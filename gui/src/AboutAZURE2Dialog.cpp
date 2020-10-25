@@ -1,5 +1,8 @@
+#include <QLabel>
+#include <QPushButton>
+#include <QVBoxLayout>
+
 #include "AboutAZURE2Dialog.h"
-#include <QtGui>
 
 AboutAZURE2Dialog::AboutAZURE2Dialog(QWidget *parent) : QDialog(parent) {
   setWindowTitle(tr("About AZURE2"));

@@ -12,4 +12,4 @@ rm -r build
 cd ./build
 
 #run cmake and if sucessfull run make install 
-cmake .. -DUSE_QWT=ON && make && make install
+cmake .. -DUSE_QWT=ON && make -j 4

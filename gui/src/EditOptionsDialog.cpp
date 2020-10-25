@@ -1,5 +1,9 @@
 #include "EditOptionsDialog.h"
-#include <QtGui>
+
+#include <QCheckBox>
+#include <QVBoxLayout>
+#include <QPushButton>
+#include <QGroupBox>
 
 EditOptionsDialog::EditOptionsDialog(QWidget* parent) : QDialog(parent) {
   

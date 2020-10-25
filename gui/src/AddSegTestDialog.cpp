@@ -1,5 +1,10 @@
 #include "AddSegTestDialog.h"
-#include <QtGui>
+
+#include <QPushButton>
+#include <QGroupBox>
+#include <QGridLayout>
+#include <QHBoxLayout>
+
 
 AddSegTestDialog::AddSegTestDialog(QWidget *parent) : QDialog(parent) {
 

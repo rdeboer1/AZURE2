@@ -1,6 +1,17 @@
+#include <QCheckBox>
+#include <QDialog>
+#include <QFileDialog>
+#include <QCheckBox>
+#include <QListView>
+#include <QPushButton>
+#include <QMessageBox>
+#include <QCheckBox>
+#include <QImageWriter>
+#include <QtPrintSupport/QPrinter>
+#include <QtPrintSupport/QPrintDialog>
+
 #include "AZUREPlot.h"
 #include "PlotTab.h"
-#include <QtGui>
 #include "qwt_plot_curve.h"
 #include "qwt_plot_intervalcurve.h"
 #include "qwt_interval_symbol.h"

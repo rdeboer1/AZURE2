@@ -1,5 +1,9 @@
+#include <QLabel>
+#include <QLineEdit>
+#include <QGridLayout>
+#include <QVBoxLayout>
+
 #include "ChannelDetails.h"
-#include <QtGui>
 
 ChannelDetails::ChannelDetails(QWidget *parent) : QWidget(parent) {
   details=new QLabel;

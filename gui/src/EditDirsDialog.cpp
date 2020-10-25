@@ -1,4 +1,9 @@
-#include <QtGui>
+#include <QGroupBox>
+#include <QGridLayout>
+#include <QLabel>
+#include <QHBoxLayout>
+#include <QFileDialog>
+
 #include "EditDirsDialog.h"
 #include "ChooseFileButton.h"
 

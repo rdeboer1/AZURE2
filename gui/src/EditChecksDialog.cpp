@@ -1,4 +1,8 @@
-#include <QtGui>
+#include <QComboBox>
+#include <QGridLayout>
+#include <QLabel>
+#include <QPushButton>
+#include <QGroupBox>
 #include "EditChecksDialog.h"
 
 EditChecksDialog::EditChecksDialog(QWidget *parent) : QDialog(parent) {

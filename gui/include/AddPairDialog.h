@@ -2,7 +2,6 @@
 #define ADDPAIRDIALOG_H
 
 #include <QDialog>
-#include <QtGui>
 
 QT_BEGIN_NAMESPACE
 
@@ -10,6 +9,8 @@ class QLineEdit;
 class QLabel;
 class QCheckBox;
 class QGroupBox;
+class QComboBox;
+class QPushButton;
 
 QT_END_NAMESPACE
 

@@ -2,12 +2,13 @@
 #define LEVELSHEADERVIEW_H
 
 #include <QHeaderView>
+#include <QMouseEvent>
 
 class LevelsHeaderView : public QHeaderView {
  public:
   LevelsHeaderView(Qt::Orientation orientation, QWidget *parent) : 
     QHeaderView(orientation,parent) {
-      setClickable(true);
+      setSectionsClickable(true);
     };
  protected:
    virtual void mouseMoveEvent ( QMouseEvent * e ) {

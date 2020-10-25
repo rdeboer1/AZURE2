@@ -1,4 +1,10 @@
-#include <QtGui>
+#include <QGridLayout>
+#include <QMessageBox>
+#include <QGridLayout>
+#include <QGroupBox>
+#include <QHeaderView>
+#include <QTextStream>
+
 #include "SegmentsTab.h"
 #include "RichTextDelegate.h"
 #include "InfoDialog.h"
@@ -19,9 +25,9 @@ SegmentsTab::SegmentsTab(QWidget *parent) : QWidget(parent) {
   segmentsDataView->setEditTriggers(QAbstractItemView::NoEditTriggers);
   segmentsDataView->setShowGrid(false);
   segmentsDataView->setColumnWidth(0,27);
-  segmentsDataView->horizontalHeader()->setResizeMode(0,QHeaderView::Fixed);
-  segmentsDataView->horizontalHeader()->setResizeMode(1,QHeaderView::Fixed);
-  segmentsDataView->horizontalHeader()->setResizeMode(2,QHeaderView::Fixed);
+  segmentsDataView->horizontalHeader()->setSectionResizeMode(0,QHeaderView::Fixed);
+  segmentsDataView->horizontalHeader()->setSectionResizeMode(1,QHeaderView::Fixed);
+  segmentsDataView->horizontalHeader()->setSectionResizeMode(2,QHeaderView::Fixed);
   for(int i = 1; i<3;i++) segmentsDataView->setColumnWidth(i,200);
   for(int i = 3; i<7;i++) segmentsDataView->setColumnWidth(i,120);
   segmentsDataView->setColumnWidth(7,140);
@@ -49,9 +55,9 @@ SegmentsTab::SegmentsTab(QWidget *parent) : QWidget(parent) {
   segmentsTestView->setEditTriggers(QAbstractItemView::NoEditTriggers);
   segmentsTestView->setShowGrid(false);
   segmentsTestView->setColumnWidth(0,27);
-  segmentsTestView->horizontalHeader()->setResizeMode(0,QHeaderView::Fixed);
-  segmentsTestView->horizontalHeader()->setResizeMode(1,QHeaderView::Fixed);
-  segmentsTestView->horizontalHeader()->setResizeMode(2,QHeaderView::Fixed);
+  segmentsTestView->horizontalHeader()->setSectionResizeMode(0,QHeaderView::Fixed);
+  segmentsTestView->horizontalHeader()->setSectionResizeMode(1,QHeaderView::Fixed);
+  segmentsTestView->horizontalHeader()->setSectionResizeMode(2,QHeaderView::Fixed);
   for(int i = 1; i<3;i++) segmentsTestView->setColumnWidth(i,200);
   segmentsTestView->setColumnWidth(3,120);
   segmentsTestView->setColumnWidth(5,90);

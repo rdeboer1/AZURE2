@@ -1,4 +1,6 @@
-#include <QtGui>
+#include <QMainWindow>
+#include <QApplication>
+#include <QResource>
 #include <iostream>
 #include "AZURESetup.h"
 

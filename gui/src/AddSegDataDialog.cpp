@@ -1,5 +1,9 @@
 #include "AddSegDataDialog.h"
-#include <QtGui>
+
+#include <QPushButton>
+#include <QGroupBox>
+#include <QGridLayout>
+#include <QFileDialog>
 
 AddSegDataDialog::AddSegDataDialog(QWidget *parent) : QDialog(parent) {
 

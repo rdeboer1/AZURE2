@@ -1,4 +1,11 @@
-#include <QtGui>
+#include <QHeaderView>
+#include <QGridLayout>
+#include <QComboBox>
+#include <QLineEdit>
+#include <QCheckBox>
+#include <QTextStream>
+#include <QMessageBox>
+
 #include "PairsTab.h"
 #include "RichTextDelegate.h"
 #include "InfoDialog.h"
@@ -30,7 +37,7 @@ PairsTab::PairsTab(QWidget *parent) : QWidget(parent) {
   connect(pairsView->selectionModel(),SIGNAL(selectionChanged(QItemSelection,QItemSelection)),this,SLOT(updateButtons(QItemSelection)));
   connect(pairsView,SIGNAL(doubleClicked(QModelIndex)),this,SLOT(editPair()));
 
-  for(int i = 0; i<PairsData::SIZE;i++) pairsView->horizontalHeader()->setResizeMode(i,QHeaderView::Stretch);
+  for(int i = 0; i<PairsData::SIZE;i++) pairsView->horizontalHeader()->setSectionResizeMode(i,QHeaderView::Stretch);
 
   addButton=new QPushButton(tr("+"));
   addButton->setMaximumSize(28,28);

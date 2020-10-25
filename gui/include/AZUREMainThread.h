@@ -1,13 +1,15 @@
 #ifndef AZUREMAINTHREAD_H
 #define AZUREMAINTHREAD_H
 
+#include <QThread>
+#include <QEventLoop>
+#include <QPushButton>
+
 #include "TextEditBuffer.h"
 #include "FilteredTextEdit.h"
 #include "RunTab.h"
 #include "AZUREMain.h"
 #include "Config.h"
-#include <QThread>
-#include <QEventLoop>
 #include <iostream>
 
 class AZUREMainThreadWorker : public QObject {

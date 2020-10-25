@@ -1,8 +1,16 @@
+#include <QTextEdit>
+#include <QComboBox>
+#include <QGridLayout>
+#include <QLabel>
+#include <QSpacerItem>
+#include <QRadioButton>
+#include <QGroupBox>
+#include <QFileDialog>
+
 #include "RunTab.h"
 #include "ChooseFileButton.h"
 #include "FilteredTextEdit.h"
 #include "InfoDialog.h"
-#include <QtGui>
 
 RunTab::RunTab(QWidget* parent) : QWidget(parent) { 
   calcType = new QComboBox;

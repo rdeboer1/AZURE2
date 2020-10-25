@@ -1,3 +1,5 @@
+#include <QVariant>
+
 #include "TargetIntModel.h"
 
 TargetIntModel::TargetIntModel(QObject *parent) : QAbstractTableModel(parent) {
@@ -107,9 +109,9 @@ bool TargetIntModel::setData(const QModelIndex &index, const QVariant &value, in
     else if(index.column() == 6) tempData.density = value.toDouble();
     else if(index.column() == 7) tempData.stoppingPowerEq = value.toString();
     else if(index.column() == 8) tempData.numParameters = value.toInt();
-    else if(index.column() == 9) tempData.parameters = qVariantValue<QList<double> >(value);
+    else if(index.column() == 9) tempData.parameters = value.value<QList<double> >();
     else if(index.column() == 10) tempData.isQCoefficients = value.toBool();
-    else if(index.column() == 11) tempData.qCoefficients = qVariantValue<QList<double> >(value);
+    else if(index.column() == 11) tempData.qCoefficients = value.value<QList<double> >();
     else return false;
     targetIntList.replace(row,tempData);
     emit(dataChanged(index,index));

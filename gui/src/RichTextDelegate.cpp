@@ -1,8 +1,10 @@
-#include "RichTextDelegate.h"
 #include <QTextDocument>
 #include <QPainter>
 #include <QAbstractTextDocumentLayout>
 #include <QApplication>
+#include <QPushButton>
+
+#include "RichTextDelegate.h"
 
 void RichTextDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const {
   QTextDocument document;

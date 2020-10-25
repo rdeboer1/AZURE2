@@ -1,5 +1,8 @@
+#include <QTextEdit>
+#include <QPushButton>
+#include <QVBoxLayout>
+
 #include "InfoDialog.h"
-#include <QtGui>
 
 InfoDialog::InfoDialog(const QString& string, 
 		       QWidget* parent,

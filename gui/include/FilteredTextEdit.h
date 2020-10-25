@@ -1,8 +1,9 @@
 #ifndef FILTEREDTEXTEDIT_H
 #define FILTEREDTEXTEDIT_H
 
+#include <QTextEdit>
+
 #include <iostream>
-#include <QtGui>
 
 class FilteredTextEdit : public QTextEdit {
   Q_OBJECT

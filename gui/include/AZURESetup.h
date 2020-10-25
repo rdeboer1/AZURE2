@@ -1,6 +1,8 @@
 #ifndef AZURESETUP_H
 #define AZURESETUP_H
 
+#include <QMainWindow>
+
 #include "PairsTab.h"
 #include "LevelsTab.h"
 #include "SegmentsTab.h"

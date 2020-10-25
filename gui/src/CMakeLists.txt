@@ -1,10 +1,10 @@
-find_package (Qt5 COMPONENTS Widgets REQUIRED)
+find_package (Qt5 COMPONENTS Core PrintSupport Gui REQUIRED)
 IF( USE_QWT )
 find_package (Qwt REQUIRED)
 ENDIF( USE_QWT )
 
 IF( USE_QWT )
-include_directories(../include ${AZURE2_SOURCE_DIR}/include ${Qwt6_INCLUDE_DIR})
+include_directories(../include ${AZURE2_SOURCE_DIR}/include ${QWT_INCLUDE_DIR})
 ELSE( USE_QWT )
 include_directories(../include ${AZURE2_SOURCE_DIR}/include)
 ENDIF( USE_QWT )
@@ -52,19 +52,19 @@ if (WIN32)
 add_definitions(-DWIN_SPACING)
 endif (WIN32)
 
-# SuperSubatomic - commented this
-#QT5_ADD_RESOURCES(AZURESETUP_SOURCES ${AZURESETUP_RCCS})
+QT5_ADD_RESOURCES(AZURESETUP_SOURCES ${AZURESETUP_RCCS})
 QT5_WRAP_CPP(AZURESETUP_HEADERS_MOC ${AZURESETUP_HEADERS})
 
 add_library(AZURESetup ${AZURESETUP_SOURCES} ${AZURESETUP_HEADERS_MOC})
 
 # SuperSubatomic - added this
-target_link_libraries (AZURESetup Qt5::Widgets)
+target_link_libraries (AZURESetup Qt5::Core Qt5::PrintSupport)
+#add_executable(AZURE2 AZURESetup.qrc)
 
 set (TEMP_VAR AZURESetup )
 IF( USE_QWT )
-FIND_LIBRARY( QtSvg_LIBRARY NAMES QtSvg QtSvg5 Qt5Svg Qt5Svg5 PATHS ${QT_LIBRARY_DIR} )
-set (TEMP_VAR ${TEMP_VAR} ${Qwt6_Qt5_LIBRARY} ${QtSvg_LIBRARY} )
+FIND_LIBRARY( QtSvg_LIBRARY NAMES QtSvg QtSvg5 Qt5Svg Qt5Svg5 Qt5PrintSupport PATHS ${QT_LIBRARY_DIR} )
+set (TEMP_VAR ${TEMP_VAR} ${QWT_LIBRARIES} ${QtSvg_LIBRARY} )
 ENDIF( USE_QWT )
 set (TEMP_VAR ${TEMP_VAR} ${QT_LIBRARIES})
 
