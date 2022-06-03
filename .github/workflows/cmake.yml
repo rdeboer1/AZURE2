@@ -6,29 +6,20 @@ on:
   pull_request:
     branches: [ "master" ]
     
-addons:
-  apt:
-    sources:
-      - sourceline: "ppa:ubuntu-toolchain-r/test"
-    update: true
-    packages:
-      - libgsl-dev
-      - libomp-dev
-      - libxpm-dev
-      - libreadline-dev
-      - qt4-dev-tools
-      - lcov
-
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
   BUILD_TYPE: Release
-
-jobs:
+ 
   build:
     # The CMake configure and build commands are platform agnostic and should work equally well on Windows or Mac.
     # You can convert this to a matrix build if you need cross-platform coverage.
     # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
     runs-on: ubuntu-latest
+    
+    run: |
+      wget --quiet https://root.cern/download/root_v6.20.04.Linux-ubuntu18-x86_64-gcc7.5.tar.gz
+      tar -xzf root_v6.20.04.Linux-ubuntu18-x86_64-gcc7.5.tar.gz
+      source root/bin/thisroot.sh
 
     steps:
     - uses: actions/checkout@v3
