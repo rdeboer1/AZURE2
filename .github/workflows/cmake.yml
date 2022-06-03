@@ -5,6 +5,19 @@ on:
     branches: [ "master" ]
   pull_request:
     branches: [ "master" ]
+    
+addons:
+  apt:
+    sources:
+      - sourceline: "ppa:ubuntu-toolchain-r/test"
+    update: true
+    packages:
+      - libgsl-dev
+      - libomp-dev
+      - libxpm-dev
+      - libreadline-dev
+      - qt4-dev-tools
+      - lcov
 
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
