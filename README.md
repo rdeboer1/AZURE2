@@ -6,7 +6,7 @@
 [![codecov](https://codecov.io/gh/phScholz/AZURE2/branch/master/graph/badge.svg?token=WfVDllGHjP)](https://codecov.io/gh/phScholz/AZURE2)
 
 
-Thank you for choosing AZURE2 to for all your R-Matrix needs.
+Thank you for choosing AZURE2 for all your R-Matrix needs.
 
 This file contains a brief description of how to compile the AZURE2 package.  
 
