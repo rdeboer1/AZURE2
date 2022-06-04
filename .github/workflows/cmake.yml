@@ -19,7 +19,6 @@ jobs:
   
     steps:
     - uses: actions/checkout@v3
-    - uses: actions/spack-github-action@v1
     
 #    - name: Install root
 #   run: |
@@ -28,7 +27,12 @@ jobs:
 #        source root/bin/thisroot.sh
     - name: Install Everything
       run: |
-        spack install minuit
+        git clone -c feature.manyFiles=true https://github.com/spack/spack.git
+        cd spack
+        git checkout releases/v0.18
+        . share/spack/setup-env.sh
+          spack install minuit
+        cd -           
         cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
         cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
         ctest -C ${{env.BUILD_TYPE}}
