@@ -25,33 +25,36 @@ jobs:
 #        wget --quiet https://root.cern/download/root_v6.20.04.Linux-ubuntu18-x86_64-gcc7.5.tar.gz
 #        tar -xzf root_v6.20.04.Linux-ubuntu18-x86_64-gcc7.5.tar.gz
 #        source root/bin/thisroot.sh
-    - name: Install Spack
+    - name: Install Everything
       run: |
         git clone -c feature.manyFiles=true https://github.com/spack/spack.git
         cd spack
         git checkout releases/v0.18
         . share/spack/setup-env.sh
         spack install minuit
+        cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+        cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
+        ctest -C ${{env.BUILD_TYPE}}
         
                 
-    - name: Configure CMake
+#    - name: Configure CMake
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
       # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
-      run: |
-        . share/spack/setup-env.sh
-        cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+#      run: |
+#        . share/spack/setup-env.sh
+#        cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
 
-    - name: Build
+#    - name: Build
       # Build your program with the given configuration
-      run: |
-       . share/spack/setup-env.sh
-       cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
+#      run: |
+#       . share/spack/setup-env.sh
+#       cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
 
-    - name: Test
-      working-directory: ${{github.workspace}}/build
+#    - name: Test
+#      working-directory: ${{github.workspace}}/build
       # Execute tests defined by the CMake configuration.  
       # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
-      run: |
-        . share/spack/setup-env.sh
-        ctest -C ${{env.BUILD_TYPE}}
+#      run: |
+#        . share/spack/setup-env.sh
+#        ctest -C ${{env.BUILD_TYPE}}
       
