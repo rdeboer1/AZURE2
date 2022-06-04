@@ -21,7 +21,10 @@ jobs:
     - uses: actions/checkout@v3
     
     - name: Install root
-      run: wget --quiet https://root.cern/download/root_v6.20.04.Linux-ubuntu18-x86_64-gcc7.5.tar.gz
+      run: |
+        wget --quiet https://root.cern/download/root_v6.20.04.Linux-ubuntu18-x86_64-gcc7.5.tar.gz
+        tar -xzf root_v6.20.04.Linux-ubuntu18-x86_64-gcc7.5.tar.gz
+        source root/bin/thisroot.sh
 
     - name: Configure CMake
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
