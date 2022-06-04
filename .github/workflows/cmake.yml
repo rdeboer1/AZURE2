@@ -28,7 +28,7 @@ jobs:
     - name: Install Spack
       run: |
         git clone -c feature.manyFiles=true https://github.com/spack/spack.git
-        cd /spack
+        cd spack
         git checkout releases/v0.18
         . share/spack/setup-env.sh
 
