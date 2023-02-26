@@ -802,10 +802,10 @@ void EData::WriteOutputFiles(const Config &configure, bool isFit) {
     ESegmentIterator thisSegment = segment;
     if(firstSumIterator!=GetSegments().end()) thisSegment = firstSumIterator;
     for(EPointIterator point=segment->GetPoints().begin();point<segment->GetPoints().end();point++) {
-      out.precision(4);
+      out.precision(6);
       if(segment->IsAngularDist()) {
-	out << std::setw(13) << std::scientific << point->GetCMEnergy();
-	for(int i = 0;i<point->GetNumAngularDists();i++) out << std::setw(13) << point->GetAngularDist(i);
+	out << std::setw(15) << std::scientific << point->GetCMEnergy();
+	for(int i = 0;i<point->GetNumAngularDists();i++) out << std::setw(15) << point->GetAngularDist(i);
 	out << std::endl;
       } else {
 	double fitCrossSection=point->GetFitCrossSection();
@@ -814,17 +814,17 @@ void EData::WriteOutputFiles(const Config &configure, bool isFit) {
 	  for(ESegmentIterator it=firstSumIterator;it<segment;it++) 
 	    fitCrossSection+=it->GetPoint(pointIndex)->GetFitCrossSection();
 	}
-	out << std::setw(13) << std::scientific << point->GetCMEnergy()
-	    << std::setw(13) << std::scientific << point->GetExcitationEnergy()
-	    << std::setw(13) << std::scientific << point->GetCMAngle()
-	    << std::setw(13) << std::scientific << fitCrossSection
-	    << std::setw(13) << std::scientific << fitCrossSection*point->GetSFactorConversion();
+	out << std::setw(15) << std::scientific << point->GetCMEnergy()
+	    << std::setw(15) << std::scientific << point->GetExcitationEnergy()
+	    << std::setw(15) << std::scientific << point->GetCMAngle()
+	    << std::setw(15) << std::scientific << fitCrossSection
+	    << std::setw(15) << std::scientific << fitCrossSection*point->GetSFactorConversion();
 	if(!output.IsExtrap()) {
 	  double dataNorm=thisSegment->GetNorm();
-	  out << std::setw(13) << std::scientific << point->GetCMCrossSection()*dataNorm
-	      << std::setw(13) << std::scientific << point->GetCMCrossSectionError()*dataNorm
-	      << std::setw(13) << std::scientific << point->GetCMCrossSection()*dataNorm*point->GetSFactorConversion()
-	      << std::setw(13) << std::scientific << point->GetCMCrossSectionError()*dataNorm*point->GetSFactorConversion()
+	  out << std::setw(15) << std::scientific << point->GetCMCrossSection()*dataNorm
+	      << std::setw(15) << std::scientific << point->GetCMCrossSectionError()*dataNorm
+	      << std::setw(15) << std::scientific << point->GetCMCrossSection()*dataNorm*point->GetSFactorConversion()
+	      << std::setw(15) << std::scientific << point->GetCMCrossSectionError()*dataNorm*point->GetSFactorConversion()
 	      << std::endl;
 	} else out << std::endl;
       }
@@ -849,7 +849,7 @@ void EData::WriteOutputFiles(const Config &configure, bool isFit) {
     std::string outputfile=configure.outputdir+"normalizations.out";
     std::ofstream out(outputfile.c_str());
     if(out) {
-      out.precision(4);
+      out.precision(6);
       out << std::scientific;
       for(ESegmentIterator segment=GetSegments().begin();segment<GetSegments().end();segment++) {
 	if(segment->IsVaryNorm()) out << std::setw(20) << "Segment Key #" << segment->GetSegmentKey()
