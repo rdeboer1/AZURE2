@@ -9,7 +9,6 @@
  * subsequent routines/classes follow object-oriented C++ programming conventions.
  */
 
-
 #include "AZUREMain.h"
 #include "Config.h"
 #include "NucLine.h"
@@ -32,6 +31,8 @@
 extern int start_gui(int argc, char *argv[]);
 #endif
 struct SegPairs {int firstPair; int secondPair;};
+
+extern int start_api(int port, Config& configure);
 
 /*!
  * This function displays the welcome banner.
@@ -129,6 +130,7 @@ bool parseOptions(int argc, char *argv[], Config& configure) {
     else if(*it=="--gsl-coul") configure.paramMask |= Config::USE_GSL_COULOMB_FUNC;
     else if(*it=="--ignore-externals") configure.paramMask |= Config::IGNORE_ZERO_WIDTHS;
     else if(*it=="--use-rmc") configure.paramMask |= Config::USE_RMC_FORMALISM;
+    else if(*it=="--use-api") configure.paramMask;
     else if(*it=="--no-gui") continue;
     else configure.outStream << "WARNING: Unknown option " << *it << '.' << std::endl;
   }
@@ -455,8 +457,8 @@ bool checkExternalCapture(Config& configure, const std::vector<SegPairs>& segPai
     bool empty=true;
     for(unsigned int i=0;i<line.size();++i) 
       if(line[i]!=' '&&line[i]!='\t') {
-	empty=false;
-	break;
+	      empty=false;
+	      break;
       }
     if(empty==true) continue;
     if(line!="</levels>"&&!in.eof()) {
@@ -464,26 +466,23 @@ bool checkExternalCapture(Config& configure, const std::vector<SegPairs>& segPai
       stm.str(line);
       NucLine tempNucLine(stm);
       if((stm.rdstate() & (std::stringstream::failbit | std::stringstream::badbit))) {
-	configure.outStream << "Problem reading nuclear information. Check configuration file." << std::endl;
-	return false;
+	      configure.outStream << "Problem reading nuclear information. Check configuration file." << std::endl;
+	      return false;
       }
       if(tempNucLine.ecMultMask()!=0) {
-	for(int i=0;i<segPairs.size();i++) {
-	  if(tempNucLine.ir()==segPairs[i].secondPair||
-	     segPairs[i].secondPair==-1) {
-	    configure.paramMask |= Config::USE_EXTERNAL_CAPTURE;
-	    break;
-	  }
-	}
+	      for(int i=0;i<segPairs.size();i++) {
+	        if(tempNucLine.ir()==segPairs[i].secondPair || segPairs[i].secondPair==-1) {
+	          configure.paramMask |= Config::USE_EXTERNAL_CAPTURE;
+	          break;
+	        }
+	      }
       }
     }
   }
   in.close();
   in.clear();
-  if((configure.paramMask & Config::USE_EXTERNAL_CAPTURE)&&
-     (configure.paramMask & Config::USE_RMC_FORMALISM)) {
-    configure.outStream << "WARNING: External capture is not compatible with Reich-Moore.  Ignoring external capture." 
-			<< std::endl;
+  if((configure.paramMask & Config::USE_EXTERNAL_CAPTURE)&& (configure.paramMask & Config::USE_RMC_FORMALISM)) {
+    configure.outStream << "WARNING: External capture is not compatible with Reich-Moore.  Ignoring external capture." << std::endl;
     configure.paramMask &= ~Config::USE_EXTERNAL_CAPTURE;
   }
   return true;
@@ -554,6 +553,8 @@ void startMessage(const Config& configure) {
  */
 
 int main(int argc,char *argv[]){
+
+  std::cout << "Starting AZURE2..." << std::endl;
   
   //Check for --help option first.  If set, print help and exit.
   for(int i=1;i<argc;i++) 
@@ -602,46 +603,59 @@ int main(int argc,char *argv[]){
     configure.paramMask |= Config::USE_AMATRIX;
   }
 
-  //Print welcome message
-  welcomeMessage(configure);
+  int port;
+  bool useAPI=false;
+  for(int i=1;i<argc;i++){ 
+    if(strcmp(argv[i],"--use-api")==0){ useAPI=true;
+      port = atoi(argv[i+1]);
+    }
+  }
+  if(useAPI) start_api(port, configure);
 
-  //Read and process command, setting appropriate configuration flags
-  processCommand(commandShell(configure),configure);
-  
-  //Open history file for readline
-#ifndef NO_READLINE
-  if(useReadline) read_history("./.azure_history");
-#endif
-  
-  //Read the external parameter file to be used, if any
-  getParameterFile(useReadline,configure);
-  
-  //Parse the segment files for entrance,exit pairs
-  std::vector<SegPairs> segPairs;
-  if(!(configure.paramMask & Config::CALCULATE_REACTION_RATE)) {
-    if(!readSegmentFile(configure,segPairs)) exit(1);
-  } else getRateParams(configure,segPairs,useReadline);
+  else{
 
-  //Check if the entrance,exit pairs are in the external capture file
-  // If so, external capture will be needed
-  if(!checkExternalCapture(configure,segPairs)) exit(1);
+    //Print welcome message
+    welcomeMessage(configure);
+
+    //Read and process command, setting appropriate configuration flags
+    processCommand(commandShell(configure),configure);
   
-  //Read the external capture file name to be used, if any
-  getExternalCaptureFile(useReadline,configure);
+    //Open history file for readline
+  #ifndef NO_READLINE
+    if(useReadline) read_history("./.azure_history");
+  #endif
+  
+    //Read the external parameter file to be used, if any
+    getParameterFile(useReadline,configure);
+  
+    //Parse the segment files for entrance,exit pairs
+    std::vector<SegPairs> segPairs;
+    if(!(configure.paramMask & Config::CALCULATE_REACTION_RATE)) {
+      if(!readSegmentFile(configure,segPairs)) exit(1);
+    } else getRateParams(configure,segPairs,useReadline);
+
+    //Check if the entrance,exit pairs are in the external capture file
+    // If so, external capture will be needed
+    if(!checkExternalCapture(configure,segPairs)) exit(1);
+  
+    //Read the external capture file name to be used, if any
+    getExternalCaptureFile(useReadline,configure);
    
-  //Create instance of main AZURE function, print start message,
-  // and execute
-  AZUREMain azureMain(configure);
-  configure.outStream << std::endl; startMessage(configure);
-  int returnValue = azureMain();
+    //Create instance of main AZURE function, print start message,
+    // and execute
+    AZUREMain azureMain(configure);
+    configure.outStream << std::endl; startMessage(configure);
+    int returnValue = azureMain();
   
-  //Print exit message
-  exitMessage(configure);
+    //Print exit message
+    exitMessage(configure);
+
+  }
 
   //Write readline history file
 #ifndef NO_READLINE
   if(useReadline) write_history("./.azure_history");
 #endif
   
-  return returnValue;
+  return 0;
 }

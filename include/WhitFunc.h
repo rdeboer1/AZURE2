@@ -5,6 +5,8 @@
 #include <gsl/gsl_sf_hyperg.h>
 #include "Constants.h"
 
+#include <iostream>
+
 extern double gsl_whit_function(int,double,double,double,int,int);
 
 /// A function class to calculate Whittaker functions for negative energy channels.
@@ -54,6 +56,9 @@ class WhitFunc {
     const double a=m-k+0.5;
     const double b=1.0+2.0*m;
     
+    // FIXME: sometimes a and z are NaN so we make a check before
+    if( a != a || b != b || z != z ) return 0;
+
     return exp(-z/2.0)*pow(z,m+0.50)*gsl_sf_hyperg_U(a,b,z);
   };
   private:

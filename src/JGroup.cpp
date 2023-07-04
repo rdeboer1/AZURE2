@@ -6,14 +6,14 @@
  */
 
 JGroup::JGroup(NucLine nucLine):
-  pi_(nucLine.levelPi()), j_(nucLine.levelJ()), isinrmatrix_(true) {};
+  pi_(nucLine.levelPi()), j_(nucLine.levelJ()), isinrmatrix_(true) { };
   
 /*!
  * This constructor is used when a \f$ J^\pi \f$ group is created from specified values of spin and parity.
  */
 
 JGroup::JGroup(double j,int pi):
-  pi_(pi),j_(j),isinrmatrix_(false) {};
+  pi_(pi),j_(j),isinrmatrix_(false) { };
 
 /*!
  * Returns true if the \f$ J^\pi \f$ group is to be included in the A-/R-Matrix calculation, otherwise returns false. 

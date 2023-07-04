@@ -25,7 +25,7 @@ inline bool isfinite (const std::complex<double> &z)
 {
   const double x = real (z), y = imag (z);
 
-  return (finite (x) && finite (y));
+  return (isfinite (x) && isfinite (y));
 }
 
 // Usual operator overloads of complex numbers with integers

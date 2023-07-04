@@ -37,7 +37,7 @@ public:
   void AddPair(PPair);
   void AddJGroup(JGroup);
   void PrintNuc(const Config&);
-  void TransformIn(const Config&);
+  bool TransformIn(const Config&);
   void SortPathways(const Config&);
   void PrintPathways(const Config&);
   void CalcBoundaryConditions(const Config&);
@@ -45,8 +45,11 @@ public:
   void CalcAngularDists(int);
   void PrintAngularDists(const Config&);
   void FillMnParams(ROOT::Minuit2::MnUserParameters&);
+  void FillCompoundFromParamsPhysical(const vector_r &);
+  void PrintCompoundFromParams();
   void FillCompoundFromParams(const vector_r &);
   void TransformOut(const Config&);
+  vector_r GetTransformParams(const Config& configure);
   void PrintTransformParams(const Config&);
   void SetMaxLValue(int);
   void CalcShiftFunctions(const Config&);

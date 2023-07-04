@@ -1,6 +1,8 @@
 cmake_minimum_required (VERSION 2.8)
 project (AZURE2)
 
+set(AZURE2_SOURCE_DIR ${CMAKE_BUILD_DIRECTORY})
+
 if (MINUIT_PATH) 
 set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} ${MINUIT_PATH})
 set(CMAKE_INCLUDE_PATH ${CMAKE_INCLUDE_PATH} ${MINUIT_PATH})
@@ -17,13 +19,15 @@ include_directories(${GSL_INCLUDE_DIR})
 find_package (Minuit2 REQUIRED)
 include_directories(${MINUIT2_INCLUDE_DIR})
 find_package (OpenMP REQUIRED)
-set (CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS})
+include_directories(${OPENMP_INCLUDE_DIR})
+find_package(BLAS REQUIRED)
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp=libomp")
 
 option (BUILD_LIBRARY
        "Build AZURE2 as a library" OFF)
 
 option (BUILD_GUI 
-       "Build AZURE2 with graphical setup program" ON)
+       "Build AZURE2 with graphical setup program" NO)
 option (USE_STAT
           "Use stat() function to check for directories.  Not
           recommended for windows builds" YES)
@@ -32,10 +36,11 @@ option (USE_QWT
 option (USE_READLINE
 		  "Use Readline library for CLI input." YES)
 option(USE_GCOV 
-       "Create a GCov-enabled build." ON)
+       "Create a GCov-enabled build." OFF)
 option(CODE_COVERAGE 
        "Enable coverage reporting" ON)
 
+add_subdirectory (api)
 
 if (BUILD_GUI)
 add_subdirectory (gui)
@@ -83,4 +88,3 @@ set( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} ${GCC_COVERAGE_COMPILE_FLAGS}" )
 set( CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} ${GCC_COVERAGE_LINK_FLAGS}" )
 
 add_subdirectory (src)
-

@@ -397,10 +397,53 @@ void CNuc::PrintNuc(const Config &configure) {
 }
 
 /*!
+ * Fills the CNuc object from the parameter array.
+ */
+
+void CNuc::FillCompoundFromParamsPhysical(const vector_r &p) {
+  int i=0;
+  for(int j=1;j<=this->NumJGroups();j++) {
+    for(int la=1;la<=this->GetJGroup(j)->NumLevels();la++) {
+      ALevel *level=this->GetJGroup(j)->GetLevel(la);
+      level->SetE(p[i]);i++;
+      double nFSum=1.0;
+      for(int ch=1;ch<=this->GetJGroup(j)->NumChannels();ch++) {
+	level->SetGamma(ch,p[i]);
+	if(ch<=level->NumNFIntegrals()) nFSum+=2.0*
+	  this->GetPair(this->GetJGroup(j)->GetChannel(ch)->GetPairNum())->GetChRad()*
+	  this->GetPair(this->GetJGroup(j)->GetChannel(ch)->GetPairNum())->GetRedMass()*
+	  uconv/pow(hbarc,2.0)*pow(p[i],2.0)*level->GetNFIntegral(ch);
+	i++;
+      }
+      level->SetSqrtNFFactor(1.0/sqrt(nFSum));
+    }
+  }
+}
+
+/*!
+ * Print the CNuc object from the parameter array.
+ */
+
+void CNuc::PrintCompoundFromParams() {
+  int i=0;
+  for(int j=1;j<=this->NumJGroups();j++) {
+    for(int la=1;la<=this->GetJGroup(j)->NumLevels();la++) {
+      ALevel *level=this->GetJGroup(j)->GetLevel(la);
+      level->GetE( );i++;
+      double nFSum=1.0;
+      for(int ch=1;ch<=this->GetJGroup(j)->NumChannels();ch++) {
+		level->GetGamma(ch);
+		std::cout << "Level " << level->GetE( ) << " " << level->GetGamma(ch) << std::endl;
+      }
+    }
+  }
+}
+
+/*!
  * Performs the initial parameter transformations from physical to formal parameters.
  */
 
-void CNuc::TransformIn(const Config& configure) {
+bool CNuc::TransformIn(const Config& configure) {
   for(int j=1;j<=this->NumJGroups();j++) {
     JGroup *theJGroup=this->GetJGroup(j);
     if(theJGroup->IsInRMatrix()) {
@@ -478,10 +521,12 @@ void CNuc::TransformIn(const Config& configure) {
 	      penes.push_back(1.0);
 	    }
 	  }
-	  if(denom<0.) configure.outStream << "WARNING: Denominator less than zero in E=" 
+	  if(denom<0.){ configure.outStream << "WARNING: Denominator less than zero in E=" 
 					   << theLevel->GetE() << " MeV resonance transformation.  "
 					   <<  "Tranformation may not have been successful." 
 					   << std::endl;
+					   return false;
+	  }
 	  double nFSum=1.0;
 	  for(int ch=1;ch<=theJGroup->NumChannels();ch++) {
 	    AChannel *theChannel=theJGroup->GetChannel(ch);
@@ -550,6 +595,7 @@ void CNuc::TransformIn(const Config& configure) {
 		  configure.outStream << "**WARNING: Imaginary portion of external width \n\tfor j=" << j << " la=" 
 			    << la << " ch=" << ch << " is greater than total width." << std::endl;
 		  tempGammas[levelKeys.size()-1][ch-1]=-real(externalWidth);
+		  return false;
 		}
 	      }
 	      shifts[levelKeys.size()-1].push_back(shifts[levelKeys.size()-1][0]);
@@ -610,6 +656,7 @@ void CNuc::TransformIn(const Config& configure) {
       }  
     }
   }
+  return true;
 }
 
 /*!
@@ -1324,7 +1371,7 @@ void CNuc::TransformOut(const Config& configure) {
 	this->GetJGroup(j)->GetLevel(la)->SetTransformE(this->GetJGroup(j)->GetLevel(la)->GetFitE());
 	for(int ch=1;ch<=this->GetJGroup(j)->NumChannels();ch++)
 	  this->GetJGroup(j)->GetLevel(la)->
-	    SetTransformGamma(ch,this->GetJGroup(j)->GetLevel(la)->GetFitGamma(ch));	
+	    SetTransformGamma(ch,this->GetJGroup(j)->GetLevel(la)->GetFitGamma(ch));
       }
   }
     
@@ -1479,6 +1526,49 @@ void CNuc::PrintTransformParams(const Config& configure) {
       }
     }
   } else configure.outStream << "Could not save parameters.out file." << std::endl;
+}
+
+/* Gets the transformet parameters*/
+
+vector_r CNuc::GetTransformParams(const Config& configure) {
+  	vector_r params;
+    for(int j=1;j<=this->NumJGroups();j++) {
+      	JGroup *theJGroup=this->GetJGroup(j);
+      	for(int la=1;la<=this->GetJGroup(j)->NumLevels();la++) {
+			ALevel *theLevel=this->GetJGroup(j)->GetLevel(la);
+			params.push_back( theLevel->GetTransformE() );
+			for(int ch=1;ch<=this->GetJGroup(j)->NumChannels();ch++) {
+	  			AChannel *theChannel=this->GetJGroup(j)->GetChannel(ch);
+	  			PPair *exitPair=this->GetPair(theChannel->GetPairNum());
+	  			double localEnergy=theLevel->GetTransformE()-exitPair->GetSepE()-exitPair->GetExE();
+	  			if(localEnergy<0.0&&theChannel->GetRadType()=='P') {
+					int tempSign = (theLevel->GetBigGamma(ch)<0) ? (-1) : (1);
+	    			params.push_back( tempSign*sqrt(fabs(theLevel->GetBigGamma(ch))) );
+	  			} else if(fabs(theLevel->GetE()-this->GetPair(theChannel->GetPairNum())->GetExE())<1.e-3&&
+	     			theJGroup->GetJ()==this->GetPair(theChannel->GetPairNum())->GetJ(2)&&
+	     			theJGroup->GetPi()==this->GetPair(theChannel->GetPairNum())->GetPi(2)&&
+		    		theChannel->GetRadType()=='M'&&theChannel->GetL()==1) {
+	    			int tempSign = (theLevel->GetBigGamma(ch)<0) ? (-1) : (1);
+	    			params.push_back(tempSign*sqrt(fabs(theLevel->GetBigGamma(ch))));
+	  			} else if(fabs(theLevel->GetE()-this->GetPair(theChannel->GetPairNum())->GetExE())<1.e-3&&
+	     			theJGroup->GetJ()==this->GetPair(theChannel->GetPairNum())->GetJ(2)&&
+	     			theJGroup->GetPi()==this->GetPair(theChannel->GetPairNum())->GetPi(2)&&
+		    		theChannel->GetRadType()=='E'&&theChannel->GetL()==2) {
+	    			int tempSign = (theLevel->GetBigGamma(ch)<0) ? (-1) : (1);
+	    			params.push_back(tempSign*sqrt(fabs(theLevel->GetBigGamma(ch)))/100.0/sqrt(fstruc*hbarc));
+	  			} else if(theChannel->GetRadType()=='F'|| theChannel->GetRadType()=='G') {
+					int tempSign = (theLevel->GetBigGamma(ch)<0) ? (-1) : (1);
+	    			params.push_back( tempSign*theLevel->GetBigGamma(ch) );
+	  			} else {
+					int tempSign = (theLevel->GetBigGamma(ch)<0) ? (-1) : (1);
+					params.push_back(tempSign*fabs(theLevel->GetBigGamma(ch))*1e6);
+	  			}  
+			}
+    	}
+    }
+
+	return params;
+
 }
 
 /*!

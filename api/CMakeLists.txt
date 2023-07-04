@@ -1,0 +1,2 @@
+add_subdirectory(src)
+set (AZUREAPI_LIBRARIES ${AZUREAPI_LIBRARIES} PARENT_SCOPE)
