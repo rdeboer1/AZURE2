@@ -119,72 +119,69 @@ bool AZUREAPI::UpdateParameters( ) {
 
 }
 
-bool AZUREAPI::UpdateSegments(vector_r& p) {
+int AZUREAPI::UpdateSegments(vector_r& p) {
 
   calculatedSegments_.clear( );
+  calculatedEnergies_.clear( );
 
   CNuc* localCompound = NULL;
   EData* localData = NULL;
   localCompound = compound()->Clone();
   localData = data()->Clone();
 
+
   AZUREParams params;
   localCompound->FillCompoundFromParamsPhysical(p);
   bool isValid = localCompound->TransformIn( configure( ) );
 
-  if( !isValid ){ 
-    calculatedSegments_.push_back( std::numeric_limits<double>::infinity() );
-    return false;
+
+  if( !isValid ){
+    return 0;
   }
 
   localCompound->FillMnParams(params.GetMinuitParams());
   localData->FillMnParams(params.GetMinuitParams());
-
   localCompound->FillCompoundFromParams(params.GetMinuitParams( ).Params( ));
 
   //Fill Compound Nucleus From Minuit Parameters
   if(configure().paramMask & Config::USE_BRUNE_FORMALISM) localCompound->CalcShiftFunctions(configure());
 
-  //loop over segments and points
-  ESegmentIterator firstSumIterator = localData->GetSegments().end();
-  ESegmentIterator lastSumIterator = localData->GetSegments().end();
-  for(EDataIterator data=localData->begin();data!=localData->end();data++) {
-    if(data.segment()->GetPoints().begin()==data.point()) {
+  int newKey  = -1;
+  int prevKey = -1;
+  int nSegments = 0;
 
-      if(data.segment()->IsTotalCapture()) {
-	      firstSumIterator=data.segment();
-	      lastSumIterator=data.segment()+data.segment()->IsTotalCapture()-1;
-      }
+  std::vector<ESegment>& segments = localData->GetSegments( );
+  for( int i = 0; i < segments.size( ); ++i ){
+    
+    newKey = segments[i].GetSegmentKey( );
+    if( prevKey == newKey ) continue;
+    prevKey = newKey; ++nSegments;
+
+    std::vector<EPoint>& data = segments[i].GetPoints();
+
+    std::vector<double> cross, energies;;
+    for( int k = 0; k < data.size( ); ++k ){
+
+      if(!data[k].IsMapped()) data[k].Calculate(localCompound,configure());
+
+      cross.push_back( data[k].GetFitCrossSection() );
+      energies.push_back( data[k].GetCMEnergy( ) );
+
 
     }
-    
-    if(!data.point()->IsMapped()) data.point()->Calculate(localCompound,configure());
-    
 
-    if(firstSumIterator!=localData->GetSegments().end()&& data.segment()!=lastSumIterator) continue;
-    
-    double fitCrossSection=data.point()->GetFitCrossSection();
-    
-    ESegmentIterator thisSegment = data.segment();
-    if(data.segment()==lastSumIterator) {
-      int pointIndex=data.point()-data.segment()->GetPoints().begin()+1;
-      for(ESegmentIterator it=firstSumIterator;it<data.segment();it++) 
-	      fitCrossSection+=it->GetPoint(pointIndex)->GetFitCrossSection();
-        thisSegment = firstSumIterator;
-    }
-
-    calculatedSegments_.push_back( fitCrossSection );
+    calculatedSegments_.push_back( cross );
+    calculatedEnergies_.push_back( energies );
 
   }
 
-  return true;
+  return calculatedSegments_.size( );
 
 }
 
 bool AZUREAPI::CalculateExternalCapture( ){
 
   configure().paramMask |= Config::USE_EXTERNAL_CAPTURE;
-
   configure().paramMask &= ~Config::USE_PREVIOUS_INTEGRALS;
   data()->CalculateECAmplitudes( compound( ), configure( ) );
   configure().paramMask |= Config::USE_PREVIOUS_INTEGRALS;
@@ -193,7 +190,7 @@ bool AZUREAPI::CalculateExternalCapture( ){
 
 }
 
-bool AZUREAPI::UpdateData( ) {
+int AZUREAPI::UpdateData( ) {
 
   dataEnergies_.clear( );
   dataSegments_.clear( );
@@ -204,31 +201,43 @@ bool AZUREAPI::UpdateData( ) {
   localCompound = compound()->Clone();
   localData = data()->Clone();
 
-  //loop over segments and points
-  ESegmentIterator firstSumIterator = localData->GetSegments().end();
-  ESegmentIterator lastSumIterator = localData->GetSegments().end();
-  for(EDataIterator data=localData->begin();data!=localData->end();data++) {
-    if(data.segment()->GetPoints().begin()==data.point()) {
+  int newKey  = -1;
+  int prevKey = -1;
+  int nSegments = 0;
 
-      if(data.segment()->IsTotalCapture()) {
-	      firstSumIterator=data.segment();
-	      lastSumIterator=data.segment()+data.segment()->IsTotalCapture()-1;
-      }
-
-    }    
-
-    if(firstSumIterator!=localData->GetSegments().end()&& data.segment()!=lastSumIterator) continue;
+  std::vector<ESegment>& segments = localData->GetSegments( );
+  for( int i = 0; i < segments.size( ); ++i ){
     
-    double energy=data.point()->GetCMEnergy( );
-    double crossSection=data.point()->GetCMCrossSection();
-    double crossSectionError=data.point()->GetCMCrossSectionError();
+    newKey = segments[i].GetSegmentKey( );
+    if( prevKey == newKey ) continue;
+    prevKey = newKey; ++nSegments;
 
-    dataEnergies_.push_back( energy );
-    dataSegments_.push_back( crossSection );
-    dataSegmentsErrors_.push_back( crossSectionError );
+    std::vector<EPoint>& data = segments[i].GetPoints();
+
+    std::vector<double> energies, cross, crossErr;
+    for( int k = 0; k < data.size( ); ++k ){
+
+      energies.push_back( data[k].GetCMEnergy( ) );
+      cross.push_back( data[k].GetCMCrossSection() );
+      crossErr.push_back( data[k].GetCMCrossSectionError() );
+
+    }
+
+    dataEnergies_.push_back( energies );
+    dataSegments_.push_back( cross );
+    dataSegmentsErrors_.push_back( crossErr );
 
   }
 
-  return true;
+  return nSegments;
 
 }
+
+// Set AZURE2 to calculate data points
+  void AZUREAPI::SetData( ) { 
+    configure().paramMask |= Config::CALCULATE_WITH_DATA; 
+  }
+  // Set AZURE2 to calculate extrapolations
+  void AZUREAPI::SetExtrap( ) { 
+    configure().paramMask &= ~Config::CALCULATE_WITH_DATA; 
+  }

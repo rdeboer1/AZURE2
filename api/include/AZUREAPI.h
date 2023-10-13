@@ -31,14 +31,18 @@ class AZUREAPI {
 
   bool Initialize( );
 
-  // Update data objects
-  bool UpdateData( );
+  // Update data objects, returns number of segments
+  int UpdateData( );
+  // Update segments values
+  int UpdateSegments(vector_r& p);
   // Calculate the external capture for data
   bool CalculateExternalCapture( );
   // Reads the parameters values
   bool UpdateParameters( );
-  // Calculated segments values
-  bool UpdateSegments(vector_r& p);
+  // Set AZURE2 to calculate data points
+  void SetData( );
+  // Set AZURE2 to calculate extrapolations
+  void SetExtrap( );
   
   /*!
    * Returns a reference to the Config structure.
@@ -59,7 +63,7 @@ class AZUREAPI {
   /*!
    * Returns a pointer to the parameter names object.
    */
-  std::vector<std::string> params_names() const {return names_;};
+  std::string params_names(int i) const {return names_[i];};
   /*!
    * Returns a pointer to the parameter names object.
    */
@@ -67,19 +71,23 @@ class AZUREAPI {
   /*!
    * Returns a pointer to the calculated segments object.
    */
-  vector_r data_energies() const {return dataEnergies_;};
+  vector_r data_energies(int i) const {return dataEnergies_[i];};
   /*!
    * Returns a pointer to the calculated segments object.
    */
-  vector_r data_segments() const {return dataSegments_;};
+  vector_r data_segments(int i) const {return dataSegments_[i];};
   /*!
    * Returns a pointer to the calculated segments object.
    */
-  vector_r data_segments_errors() const {return dataSegmentsErrors_;};
+  vector_r data_segments_errors(int i) const {return dataSegmentsErrors_[i];};
   /*!
    * Returns a pointer to the calculated segments object.
    */
-  vector_r calculated_segments() const {return calculatedSegments_;};
+  vector_r calculated_segments(int i) const {return calculatedSegments_[i];};
+  /*!
+   * Returns a pointer to the calculated energies object.
+   */
+  vector_r calculated_energies(int i) const {return calculatedEnergies_[i];};
  
  private:
 
@@ -95,10 +103,11 @@ class AZUREAPI {
   vector_r values_, transform_;
 
   // Data
-  vector_r dataEnergies_;
-  vector_r dataSegments_;
-  vector_r dataSegmentsErrors_;
-  vector_r calculatedSegments_;
+  std::vector<vector_r> dataEnergies_;
+  std::vector<vector_r> dataSegments_;
+  std::vector<vector_r> dataSegmentsErrors_;
+  std::vector<vector_r> calculatedEnergies_;
+  std::vector<vector_r> calculatedSegments_;
 
 };
 

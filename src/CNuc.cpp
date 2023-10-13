@@ -521,10 +521,10 @@ bool CNuc::TransformIn(const Config& configure) {
 	      penes.push_back(1.0);
 	    }
 	  }
-	  if(denom<0.){ configure.outStream << "WARNING: Denominator less than zero in E=" 
-					   << theLevel->GetE() << " MeV resonance transformation.  "
-					   <<  "Tranformation may not have been successful." 
-					   << std::endl;
+	  if(denom<0.){ //configure.outStream << "WARNING: Denominator less than zero in E=" 
+					//   << theLevel->GetE() << " MeV resonance transformation.  "
+					//   <<  "Tranformation may not have been successful." 
+					//   << std::endl;
 					   return false;
 	  }
 	  double nFSum=1.0;
@@ -592,8 +592,8 @@ bool CNuc::TransformIn(const Config& configure) {
 		  else tempGammas[levelKeys.size()-1][ch-1]=sqrt(pow(tempGammas[levelKeys.size()-1][ch-1],2.0)-
 								 pow(imag(externalWidth),2.0))-real(externalWidth);
 		} else {
-		  configure.outStream << "**WARNING: Imaginary portion of external width \n\tfor j=" << j << " la=" 
-			    << la << " ch=" << ch << " is greater than total width." << std::endl;
+		  //configure.outStream << "**WARNING: Imaginary portion of external width \n\tfor j=" << j << " la=" 
+			//    << la << " ch=" << ch << " is greater than total width." << std::endl;
 		  tempGammas[levelKeys.size()-1][ch-1]=-real(externalWidth);
 		  return false;
 		}
@@ -1330,8 +1330,8 @@ void CNuc::TransformOut(const Config& configure) {
 	    }
 	    if(!done) {
 	      if(iteration==maxIterations) {
-		configure.outStream << "**WARNING: Could Not Transform J = " 
-			  << this->GetJGroup(j)->GetJ();
+		//configure.outStream << "**WARNING: Could Not Transform J = " 
+		//	  << this->GetJGroup(j)->GetJ();
 		if(this->GetJGroup(j)->GetPi()==-1) configure.outStream << '-';
 		else configure.outStream << '+';
 		configure.outStream << " E = " << theLevel->GetFitE() << " MeV**" << std::endl;

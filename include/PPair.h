@@ -30,6 +30,7 @@ public:
   double GetExE() const;
   double GetSepE() const;
   double GetChRad() const;
+  void   SetChRad(double);
   double GetRedMass() const;
   double GetI1I2Factor() const;
   void AddDecay(Decay);

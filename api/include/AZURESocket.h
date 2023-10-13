@@ -37,7 +37,7 @@ public:
     bool start( );
 
     bool sendPacket( vector_r response );
-    bool sendPacket( std::string response );
+    bool sendPacket( std::string );
     bool sendPacket( std::vector<bool> response );
 
 };

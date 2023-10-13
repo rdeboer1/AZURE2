@@ -30,7 +30,7 @@ bool AZURESocket::start() {
     return false;
   }
 
-  std::cout << "Server started. Listening on port " << port_ << std::endl;
+  //std::cout << "Server started. Listening on port " << port_ << std::endl;
 
   socklen_t clientAddressSize = sizeof(clientAddress_);
 
@@ -53,11 +53,11 @@ bool AZURESocket::start() {
     // Receive command from client
     ssize_t bytesRead = recv(clientSocket_, buffer, BUFFER_SIZE * sizeof( double ), 0);
     if (bytesRead == -1) {
-      std::cerr << "Error receiving data." << std::endl;
+      //std::cerr << "Error receiving data." << std::endl;
       //break;
     } 
     else if (bytesRead == 0) {
-      std::cout << "Client disconnected." << std::endl;
+      //std::cout << "Client disconnected." << std::endl;
       //break;
     }
 
@@ -73,14 +73,15 @@ bool AZURESocket::start() {
       sendPacket( response );
     }
 
-    // Calculate data from params
+    // Calculate segments from params
     if( buffer[0] == 1 ){   
       vector_r params;
       for( int i = 0; i < buffer[1]; ++i ){
         params.push_back( buffer[2+i] );
       }
-      api_->UpdateSegments( params );
-      vector_r response = api_->calculated_segments( );   
+      double nSegments = (double)api_->UpdateSegments( params );
+      std::vector<double> response;
+      response.push_back( nSegments );  
       sendPacket( response );
     }
 
@@ -93,8 +94,9 @@ bool AZURESocket::start() {
 
     // Send the parameter name
     if( buffer[0] == 3 ){
+      int idx = (int)buffer[1];
       api_->UpdateParameters( );
-      std::string response = api_->params_names( ).at( buffer[1] );
+      std::string response = api_->params_names( idx );
       sendPacket( response );
     }
 
@@ -115,27 +117,60 @@ bool AZURESocket::start() {
 
     // Get data energies
     if( buffer[0] == 6 ){
-      vector_r response = api_->data_energies( );
+      int idx = (int)buffer[2];
+      vector_r response = api_->data_energies( idx );
       sendPacket( response );
     }
 
     // Get data segments
     if( buffer[0] == 7 ){
-      vector_r response = api_->data_segments( );
+      int idx = (int)buffer[2];
+      vector_r response = api_->data_segments( idx );
       sendPacket( response );
     }
 
     // Get data segments errors
     if( buffer[0] == 8 ){
-      vector_r response = api_->data_segments_errors( );
+      int idx = (int)buffer[2];
+      vector_r response = api_->data_segments_errors( idx );
       sendPacket( response );
     }
 
     // Update data
     if( buffer[0] == 9 ){
-      api_->UpdateData( );
+      double nSegments = (double)api_->UpdateData( );
+      std::vector<double> response;
+      response.push_back( nSegments );
+      sendPacket( response );
+    }
+
+    // Set to data mode
+    if( buffer[0] == 10 ){
+      api_->SetData( );
       std::vector<bool> response;
       response.push_back( 1 );
+      sendPacket( response );
+    }
+
+    // Set to extrapolation mode
+    if( buffer[0] == 11 ){
+      api_->SetExtrap( );
+      std::vector<bool> response;
+      response.push_back( 1 );
+      sendPacket( response );
+    }
+
+    // Get calculated segments
+    if( buffer[0] == 12 ){
+      int idx = (int)buffer[2];
+      vector_r response = api_->calculated_segments( idx );
+      sendPacket( response );
+    }
+
+    // Get calculated energies
+    if( buffer[0] == 13 ){
+      int idx = (int)buffer[2];
+      vector_r response = api_->calculated_energies( idx );
       sendPacket( response );
     }
 

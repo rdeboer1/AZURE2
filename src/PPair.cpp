@@ -161,6 +161,14 @@ double PPair::GetChRad()  const {
 }
 
 /*!
+ * Sets the channel radius of the particle pair.
+ */
+
+void PPair::SetChRad( double radius ) {
+  pair_ch_rad_ = radius;
+}
+
+/*!
  * Returns the reduced mass of the particle pair.
  */
 
