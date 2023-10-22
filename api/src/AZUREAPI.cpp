@@ -126,8 +126,8 @@ int AZUREAPI::UpdateSegments(vector_r& p) {
 
   CNuc* localCompound = NULL;
   EData* localData = NULL;
-  localCompound = compound()->Clone();
-  localData = data()->Clone();
+  localCompound = compound();
+  localData = data();
 
 
   AZUREParams params;
@@ -198,8 +198,8 @@ int AZUREAPI::UpdateData( ) {
 
   CNuc* localCompound = NULL;
   EData* localData = NULL;
-  localCompound = compound()->Clone();
-  localData = data()->Clone();
+  localCompound = compound();
+  localData = data();
 
   int newKey  = -1;
   int prevKey = -1;
@@ -234,10 +234,23 @@ int AZUREAPI::UpdateData( ) {
 }
 
 // Set AZURE2 to calculate data points
-  void AZUREAPI::SetData( ) { 
-    configure().paramMask |= Config::CALCULATE_WITH_DATA; 
+void AZUREAPI::SetData( ) { 
+  configure().paramMask |= Config::CALCULATE_WITH_DATA; 
+}
+
+// Set AZURE2 to calculate extrapolations
+void AZUREAPI::SetExtrap( ) { 
+  configure().paramMask &= ~Config::CALCULATE_WITH_DATA; 
+}
+
+// Set radius to a fixed value
+void AZUREAPI::SetRadius( double r ) {
+
+  for( int i = 1; i <= compound()->NumPairs(); i++ ){
+    if( compound()->GetPair(i)->GetChRad() == 0 ) continue;
+    compound()->GetPair(i)->SetChRad(r);
   }
-  // Set AZURE2 to calculate extrapolations
-  void AZUREAPI::SetExtrap( ) { 
-    configure().paramMask &= ~Config::CALCULATE_WITH_DATA; 
-  }
+
+  CalculateExternalCapture( );
+
+}

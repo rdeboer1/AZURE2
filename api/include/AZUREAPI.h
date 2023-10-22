@@ -43,6 +43,8 @@ class AZUREAPI {
   void SetData( );
   // Set AZURE2 to calculate extrapolations
   void SetExtrap( );
+  // Set radius to a fixed value
+  void SetRadius( double r );
   
   /*!
    * Returns a reference to the Config structure.

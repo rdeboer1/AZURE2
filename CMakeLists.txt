@@ -21,7 +21,6 @@ include_directories(${MINUIT2_INCLUDE_DIR})
 find_package (OpenMP REQUIRED)
 include_directories(${OPENMP_INCLUDE_DIR})
 find_package(BLAS REQUIRED)
-set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp=libomp")
 
 option (BUILD_LIBRARY
        "Build AZURE2 as a library" OFF)

@@ -11,4 +11,6 @@ int start_api(int port, Config& configure) {
 
   azureSocket_->start( );
 
+  return 0;
+
 }

@@ -174,6 +174,15 @@ bool AZURESocket::start() {
       sendPacket( response );
     }
 
+    // Change radius
+    if( buffer[0] == 14 ){
+      double radius = (double)buffer[2];
+      api_->SetRadius( radius );
+      std::vector<bool> response;
+      response.push_back( 1 );
+      sendPacket( response );
+    }
+
     close(clientSocket_);
 
   }

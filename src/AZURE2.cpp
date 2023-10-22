@@ -130,7 +130,7 @@ bool parseOptions(int argc, char *argv[], Config& configure) {
     else if(*it=="--gsl-coul") configure.paramMask |= Config::USE_GSL_COULOMB_FUNC;
     else if(*it=="--ignore-externals") configure.paramMask |= Config::IGNORE_ZERO_WIDTHS;
     else if(*it=="--use-rmc") configure.paramMask |= Config::USE_RMC_FORMALISM;
-    else if(*it=="--use-api") configure.paramMask;
+    else if(*it=="--use-api") configure.paramMask |= Config::USE_API;
     else if(*it=="--no-gui") continue;
     else configure.outStream << "WARNING: Unknown option " << *it << '.' << std::endl;
   }
@@ -553,8 +553,6 @@ void startMessage(const Config& configure) {
  */
 
 int main(int argc,char *argv[]){
-
-  std::cout << "Starting AZURE2..." << std::endl;
   
   //Check for --help option first.  If set, print help and exit.
   for(int i=1;i<argc;i++) 

@@ -1,4 +1,4 @@
-#ignore build directory
-build/*
-build*
+build/**
 .DS_Store
+.cache/**
+.vscode/**

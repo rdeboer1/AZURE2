@@ -900,8 +900,8 @@ int EData::CalculateECAmplitudes(CNuc *theCNuc,const Config& configure) {
 	    int ir=theCNuc->GetPairNumFromKey(segment->GetExitKey());
 	    if(ecLevel->GetECPairNum()==ir) {
 	      if(!(configure.paramMask & Config::USE_PREVIOUS_INTEGRALS)) {
-		configure.outStream << "\tSegment #" << std::setw(12) << segmentKeyOut 
-		          << std::setw(0) << " [                         ] 0%";configure.outStream.flush();
+          if( !(configure.paramMask & Config::USE_API) )
+		        configure.outStream << "\tSegment #" << std::setw(12) << segmentKeyOut << std::setw(0) << " [                         ] 0%"; configure.outStream.flush();
 		int numPoints=segment->NumPoints();
 		int pointIndex=0;
 		time_t startTime = time(NULL);
@@ -932,8 +932,8 @@ int EData::CalculateECAmplitudes(CNuc *theCNuc,const Config& configure) {
 			progress+='*';
 		      } else progress+=' ';
 		    } progress+="] ";
-		    configure.outStream << "\r\tSegment #" << std::setw(12) << segmentKeyOut 
-					<< std::setw(0) << progress << percent*100 << '%';configure.outStream.flush();
+        if( !(configure.paramMask & Config::USE_API) )
+		      configure.outStream << "\r\tSegment #" << std::setw(12) << segmentKeyOut << std::setw(0) << progress << percent*100 << '%'; configure.outStream.flush();
 		  }
 		}
 		if(configure.stopFlag||localStop) {
@@ -941,8 +941,7 @@ int EData::CalculateECAmplitudes(CNuc *theCNuc,const Config& configure) {
 		  if(in.is_open()) in.close();
 		  return -1;
 		}
-		configure.outStream << "\r\tSegment #" << std::setw(12) << segmentKeyOut 
-				    << std::setw(0) << " [*************************] 100%" << std::endl;
+    if( !(configure.paramMask & Config::USE_API) ) configure.outStream << "\r\tSegment #" << std::setw(12) << segmentKeyOut << std::setw(0) << " [*************************] 100%" << std::endl;
 	      }
 	      for(EPointIterator point=segment->GetPoints().begin();
 		  point<segment->GetPoints().end();point++) {
