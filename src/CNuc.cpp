@@ -274,25 +274,29 @@ int CNuc::GetMaxLValue() const {
 
 void CNuc::Initialize(const Config &configure) {
   //Calculate Boundary Conditions
-  configure.outStream << "Calculating Boundary Conditions..." << std::endl;
+  if( !(configure.paramMask & Config::USE_API) )
+  	configure.outStream << "Calculating Boundary Conditions..." << std::endl;
   this->CalcBoundaryConditions(configure);
   if((configure.fileCheckMask|configure.screenCheckMask) & Config::CHECK_BOUNDARY_CONDITIONS)
     this->PrintBoundaryConditions(configure);
 
   //Transform Input Parameters
   if(configure.paramMask & Config::TRANSFORM_PARAMETERS) {
-    configure.outStream << "Performing Input Parameter Transformation..." << std::endl;
+	if( !(configure.paramMask & Config::USE_API) )
+    	configure.outStream << "Performing Input Parameter Transformation..." << std::endl;
     this->TransformIn(configure);
   }
 
   //Sort reaction pathways
-  configure.outStream << "Sorting Reaction Pathways..." << std::endl;
+  if( !(configure.paramMask & Config::USE_API) )
+  	configure.outStream << "Sorting Reaction Pathways..." << std::endl;
   this->SortPathways(configure);
   if((configure.fileCheckMask|configure.screenCheckMask) & Config::CHECK_PATHWAYS) 
     this->PrintPathways(configure);
   
   //Calculate Angular Distribution Coefficients
-  configure.outStream << "Calculating Angular Distribution Coefficients..." << std::endl;
+  if( !(configure.paramMask & Config::USE_API) )
+  	configure.outStream << "Calculating Angular Distribution Coefficients..." << std::endl;
   this->CalcAngularDists(configure.maxLOrder);
   if((configure.fileCheckMask|configure.screenCheckMask) & Config::CHECK_ANGULAR_DISTS) 
     this->PrintAngularDists(configure);

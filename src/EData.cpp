@@ -446,19 +446,22 @@ void EData::ResetIterations(){
 
 int EData::Initialize(CNuc *compound,const Config &configure) {
   //Calculate channel lo-matrix and channel penetrability for each channel at each local energy
-  configure.outStream << "Calculating Lo-Matrix, Phases, and Penetrabilities..." << std::endl;
+  if( !(configure.paramMask & Config::USE_API) )
+    configure.outStream << "Calculating Lo-Matrix, Phases, and Penetrabilities..." << std::endl;
   if(this->CalcEDependentValues(compound,configure)==-1) return -1;
   if((configure.fileCheckMask|configure.screenCheckMask) & Config::CHECK_ENERGY_DEP) 
     this->PrintEDependentValues(configure,compound);
 
   //Calculate legendre polynomials for each data point
-  configure.outStream << "Calculating Legendre Polynomials..." << std::endl;
+  if( !(configure.paramMask & Config::USE_API) )
+    configure.outStream << "Calculating Legendre Polynomials..." << std::endl;
   this->CalcLegendreP(configure.maxLOrder);
   if((configure.fileCheckMask|configure.screenCheckMask) & Config::CHECK_LEGENDRE) 
     this->PrintLegendreP(configure);
 
   //Calculate Coulomb Amplitudes
-  configure.outStream << "Calculating Coulomb Amplitudes..." << std::endl;
+  if( !(configure.paramMask & Config::USE_API) )
+    configure.outStream << "Calculating Coulomb Amplitudes..." << std::endl;
   this->CalcCoulombAmplitude(compound);
   if((configure.fileCheckMask|configure.screenCheckMask) & Config::CHECK_COUL_AMPLITUDES) {
     this->PrintCoulombAmplitude(configure,compound);
@@ -466,7 +469,8 @@ int EData::Initialize(CNuc *compound,const Config &configure) {
 
   //Calculate new ec amplitudes
   if(configure.paramMask & Config::USE_EXTERNAL_CAPTURE) {
-    configure.outStream << "Calculating External Capture Amplitudes..." << std::endl;
+    if( !(configure.paramMask & Config::USE_API) )
+      configure.outStream << "Calculating External Capture Amplitudes..." << std::endl;
     if(this->CalculateECAmplitudes(compound,configure)==-1) return -1;
   }
   return 0;

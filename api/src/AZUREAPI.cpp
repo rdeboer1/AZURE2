@@ -251,6 +251,7 @@ void AZUREAPI::SetRadius( double r ) {
     compound()->GetPair(i)->SetChRad(r);
   }
 
-  CalculateExternalCapture( );
+  this->Initialize();
+  this->CalculateExternalCapture( );
 
 }
