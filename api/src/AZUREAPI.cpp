@@ -233,6 +233,37 @@ int AZUREAPI::UpdateData( ) {
 
 }
 
+void AZUREAPI::UpdateNorms( ) {
+
+  norms_.clear( );
+  normsErrors_.clear( );
+
+  CNuc* localCompound = NULL;
+  EData* localData = NULL;
+  localCompound = compound();
+  localData = data();
+
+  int newKey  = -1;
+  int prevKey = -1;
+  int nSegments = 0;
+
+  std::vector<ESegment>& segments = localData->GetSegments( );
+  for( int i = 0; i < segments.size( ); ++i ){
+    
+    newKey = segments[i].GetSegmentKey( );
+    if( prevKey == newKey ) continue;
+    prevKey = newKey; ++nSegments;
+
+    double norm = segments[i].GetNominalNorm( );
+    double normErr = segments[i].GetNormError( );
+
+    norms_.push_back( norm );
+    normsErrors_.push_back( normErr );
+
+  }
+
+}
+
 // Set AZURE2 to calculate data points
 void AZUREAPI::SetData( ) { 
   configure().paramMask |= Config::CALCULATE_WITH_DATA; 

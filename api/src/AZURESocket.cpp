@@ -183,6 +183,20 @@ bool AZURESocket::start() {
       sendPacket( response );
     }
 
+    // Send the norms
+    if( buffer[0] == 15 ){
+      api_->UpdateNorms( );
+      vector_r response = api_->norms( );
+      sendPacket( response );
+    }
+
+    // Send the norms errors
+    if( buffer[0] == 16 ){
+      api_->UpdateNorms( );
+      vector_r response = api_->norms_errors( );
+      sendPacket( response );
+    }
+
     close(clientSocket_);
 
   }

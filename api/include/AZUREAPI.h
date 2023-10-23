@@ -39,6 +39,8 @@ class AZUREAPI {
   bool CalculateExternalCapture( );
   // Reads the parameters values
   bool UpdateParameters( );
+  // Reads the norms values
+  void UpdateNorms( );
   // Set AZURE2 to calculate data points
   void SetData( );
   // Set AZURE2 to calculate extrapolations
@@ -90,6 +92,14 @@ class AZUREAPI {
    * Returns a pointer to the calculated energies object.
    */
   vector_r calculated_energies(int i) const {return calculatedEnergies_[i];};
+  /*!
+   * Returns a pointer to the segments norms.
+   */
+  vector_r norms( ) const {return norms_;};
+  /*!
+   * Returns a pointer to the segments norms errors.
+   */
+  vector_r norms_errors( ) const {return normsErrors_;};
  
  private:
 
@@ -102,7 +112,7 @@ class AZUREAPI {
   // Parameters
   std::vector<std::string> names_;
   std::vector<bool> fixed_;
-  vector_r values_, transform_;
+  vector_r values_, transform_, norms_, normsErrors_;
 
   // Data
   std::vector<vector_r> dataEnergies_;
