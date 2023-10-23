@@ -27,6 +27,9 @@ bool AZUREAPI::Initialize( ){
 
   configure().integralsfile=file;
 
+  if( compound_ != nullptr ) delete compound_;
+  if( data_ != nullptr ) delete data_;
+
   data_ = new EData( );
   compound_ = new CNuc( );
 
@@ -180,7 +183,6 @@ int AZUREAPI::UpdateSegments(vector_r& p) {
 
 bool AZUREAPI::CalculateExternalCapture( ){
 
-  configure().paramMask |= Config::USE_EXTERNAL_CAPTURE;
   configure().paramMask &= ~Config::USE_PREVIOUS_INTEGRALS;
   data()->CalculateECAmplitudes( compound( ), configure( ) );
   configure().paramMask |= Config::USE_PREVIOUS_INTEGRALS;
@@ -274,25 +276,22 @@ void AZUREAPI::SetExtrap( ) {
 }
 
 // Set radius to a fixed value
-void AZUREAPI::SetRadius( double r ) {
-
+void AZUREAPI::SetRadius( int idx, double r ) {
+  
   if( compound_ != nullptr ) delete compound_;
   if( data_ != nullptr ) delete data_;
 
   compound_ = new CNuc;
   data_     = new EData;
 
-  compound()->Fill( configure( ) );
+  std::pair<int,double> pair = std::make_pair( idx, r );
+
+  compound()->Fill( configure( ), pair  );
   data()->Fill(configure(),compound());
 
-  for( int i = 1; i <= compound()->NumPairs(); i++ ){
-    if( compound()->GetPair(i)->GetChRad() == 0 ) continue;
-    compound()->GetPair(i)->SetChRad(r);
-  }
-
+  configure().paramMask &= ~Config::USE_PREVIOUS_INTEGRALS;
   compound( )->Initialize( configure( ) );
   data( )->Initialize( compound( ), configure( ) );
-
-  CalculateExternalCapture( );
+  configure().paramMask |= Config::USE_PREVIOUS_INTEGRALS;
 
 }

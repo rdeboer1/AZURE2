@@ -100,7 +100,7 @@ int CNuc::GetPairNumFromKey(int key) {
  * input files.  Returns -1 if the files could not be read, and 0 if the files were read successfully.
  */
 
-int CNuc::Fill(const Config &configure) {
+int CNuc::Fill(const Config &configure, std::pair<int,double> radii) {
   int PairNum,LevelNum,ChannelNum,JGroupNum;
   int maxLValue=0;
   std::ifstream in(configure.configfile.c_str());
@@ -166,11 +166,12 @@ int CNuc::Fill(const Config &configure) {
 
   in.close();
 
+  if( radii.first != 0 ) this->GetPair(radii.first)->SetChRad(radii.second);
+
   this->SetMaxLValue(maxLValue);
-  if((configure.paramMask & Config::USE_EXTERNAL_CAPTURE) &&
-     this->NumJGroups()>0 && this->NumPairs()>0)
+  if((configure.paramMask & Config::USE_EXTERNAL_CAPTURE) && this->NumJGroups()>0 && this->NumPairs()>0)
     this->ParseExternalCapture(configure,ecPairs);
-  
+
   return 0;
 }
 

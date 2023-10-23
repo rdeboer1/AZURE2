@@ -30,7 +30,7 @@ public:
   int IsPair(PPair);
   int IsJGroup(JGroup);
   int GetPairNumFromKey(int);
-  int Fill(const Config&);
+  int Fill(const Config&, std::pair<int,double> radii = std::pair<int,double>(0,0.0) );
   void ParseExternalCapture(const Config&,std::map<int,int>&);
   int GetMaxLValue() const;
   void Initialize(const Config&);
