@@ -11,6 +11,7 @@
 #include <iomanip>
 #include <fstream>
 #include <limits>
+#include <new>
 
 bool AZUREAPI::Initialize( ){
 
@@ -26,10 +27,8 @@ bool AZUREAPI::Initialize( ){
 
   configure().integralsfile=file;
 
-  azureMain_ = new AZUREMain( configure( ) );
-
-  data_ = azureMain_->data();
-  compound_ = azureMain_->compound( );
+  data_ = new EData( );
+  compound_ = new CNuc( );
 
   //configure().outStream << "Filling Compound Nucleus..." << std::endl;
   if(compound()->Fill(configure())==-1) {
@@ -277,12 +276,23 @@ void AZUREAPI::SetExtrap( ) {
 // Set radius to a fixed value
 void AZUREAPI::SetRadius( double r ) {
 
+  if( compound_ != nullptr ) delete compound_;
+  if( data_ != nullptr ) delete data_;
+
+  compound_ = new CNuc;
+  data_     = new EData;
+
+  compound()->Fill( configure( ) );
+  data()->Fill(configure(),compound());
+
   for( int i = 1; i <= compound()->NumPairs(); i++ ){
     if( compound()->GetPair(i)->GetChRad() == 0 ) continue;
     compound()->GetPair(i)->SetChRad(r);
   }
 
-  this->Initialize();
-  this->CalculateExternalCapture( );
+  compound( )->Initialize( configure( ) );
+  data( )->Initialize( compound( ), configure( ) );
+
+  CalculateExternalCapture( );
 
 }

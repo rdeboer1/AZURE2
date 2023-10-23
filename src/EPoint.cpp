@@ -851,7 +851,7 @@ void EPoint::CalculateECAmplitudes(CNuc *theCNuc, const Config& configure) {
 		CoulFunc theCoulombFunction(entrancePair,!!(configure.paramMask&Config::USE_GSL_COULOMB_FUNC));
 		struct CoulWaves 
 		  coul=theCoulombFunction(theECMGroup->GetL(),entrancePair->GetChRad(),
-					  this->GetCMEnergy());		
+					  this->GetCMEnergy());	
 		double eta=sqrt(uconv/2.)*fstruc*entrancePair->GetZ(1)*entrancePair->GetZ(2)*
 		  sqrt(entrancePair->GetRedMass()/this->GetCMEnergy());
 		complex expCP(1.0,0.0);

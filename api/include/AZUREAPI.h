@@ -105,7 +105,6 @@ class AZUREAPI {
 
   // Configuration
   Config &configure_;
-  AZUREMain* azureMain_;
   EData *data_;
   CNuc *compound_;
 
