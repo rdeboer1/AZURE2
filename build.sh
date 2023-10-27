@@ -1,15 +1,5 @@
-#!/bin/bash
+mkdir build && cd build 
+cmake ../AZURE2/ -DBUILD_GUI=ON -DUSE_QWT=ON && make -j4 && cd -
 
-
-# remove build directory
-rm -r build
-
-#check if the build directory exists or not
-#if not, then create the build directory
-[ ! -d /build ] && mkdir -p ./build
-
-#go into the build directory
-cd ./build
-
-#run cmake and if sucessfull run make install 
-cmake .. -DUSE_QWT=ON && make -j 4
+mkdir -p $PREFIX/bin
+cp build/src/AZURE2 $PREFIX/bin/
