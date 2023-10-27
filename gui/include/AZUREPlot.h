@@ -2,6 +2,7 @@
 #define AZUREPLOT_H
 
 #include <qwt_plot.h>
+#include <qwt_text.h>
 #include <qwt_symbol.h>
 #include <qwt_plot_zoomer.h>
 

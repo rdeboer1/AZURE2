@@ -12,6 +12,7 @@
 
 #include "AZUREPlot.h"
 #include "PlotTab.h"
+#include <qwt_text.h>
 #include "qwt_plot_curve.h"
 #include "qwt_plot_intervalcurve.h"
 #include "qwt_interval_symbol.h"

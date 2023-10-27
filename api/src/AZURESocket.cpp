@@ -65,7 +65,7 @@ bool AZURESocket::start() {
     //std::cout << "Received command: " << buffer[0] << std::endl;
     //std::cout << "Received size: "    << buffer[1] << std::endl;
 
-    // Calculate data from params
+    // Initialize
     if( buffer[0] == 0 ){   
       api_->Initialize( );
       std::vector<bool> response;
