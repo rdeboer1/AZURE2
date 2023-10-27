@@ -3,8 +3,8 @@ package:
   version: 1.0
 
 source:
-  git_rev: main
-  git_url: https://github.com/skowrons94/pyazr
+  git_rev: api
+  git_url: https://github.com/rdeboer1/AZURE2
 
 requirements:
   build:
@@ -25,7 +25,7 @@ requirements:
     - llvm-openmp
 
 about:
-  home: https://github.com/skowrons94/pyazr
+  home: https://github.com/rdeboer1/AZURE2
   license: MIT
   license_family: MIT
   summary: AZURE2
