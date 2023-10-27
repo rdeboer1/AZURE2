@@ -21,6 +21,8 @@
 #include "qwt_plot_renderer.h"
 #include <iostream>
 
+#include <math.h>
+
 QwtText AZUREZoomer::trackerTextF( const QPointF &pos ) const
 {
     QString text;
