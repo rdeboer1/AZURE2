@@ -27,8 +27,9 @@ bool AZUREAPI::Initialize( ){
 
   configure().integralsfile=file;
 
-  if( compound_ != nullptr ) delete compound_;
-  if( data_ != nullptr ) delete data_;
+  // FIXME: It crashes on Linux (but fine on Mac)
+  //if( compound_ != nullptr ) delete compound_;
+  //if( data_ != nullptr ) delete data_;
 
   data_ = new EData( );
   compound_ = new CNuc( );
