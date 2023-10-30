@@ -1,8 +1,8 @@
 find_path(MINUIT2_INCLUDE_DIR Minuit2/MnUserFcn.h
-          HINTS C:/MinGW/msys/1.0/local/include $ENV{HOME}/local/include $ENV{HOME}/include $ENV{ROOTSYS}/include)
+          HINTS C:/MinGW/msys/1.0/local/include $ENV{HOME}/local/include $ENV{HOME}/include $ENV{HOME}/miniconda3/include/Minuit2 $ENV{HOME}/miniconda3/include $ENV{ROOTSYS}/include)
 
 find_library(MINUIT2_LIBRARY NAMES Minuit2
-             HINTS C:/MinGW/msys/1.0/local/lib $ENV{HOME}/local/lib $ENV{HOME}/lib $ENV{ROOTSYS}/lib)
+             HINTS C:/MinGW/msys/1.0/local/lib $ENV{HOME}/local/lib $ENV{HOME}/lib $ENV{HOME}/miniconda3/lib $ENV{ROOTSYS}/lib)
 
 set (MINUIT2_LIBRARIES ${MINUIT2_LIBRARY})
 

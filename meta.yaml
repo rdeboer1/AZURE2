@@ -10,6 +10,7 @@ requirements:
     - minuit2
     - qt
     - qwt
+    - gsl
     - mesalib
     - blas-devel
     - llvm-openmp
@@ -22,6 +23,7 @@ requirements:
     - minuit2
     - qt
     - qwt
+    - gsl
     - mesalib
     - llvm-openmp
     - blas-devel

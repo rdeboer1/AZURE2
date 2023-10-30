@@ -1,8 +1,8 @@
 find_path(GSL_INCLUDE_DIR gsl/gsl_cblas.h
-          HINTS C:/MinGW/msys/1.0/local/include $ENV{HOME}/local/include $ENV{HOME}/include)
+          HINTS C:/MinGW/msys/1.0/local/include $ENV{HOME}/local/include $ENV{HOME}/include $ENV{HOME}/miniconda3/include)
 
 find_library(GSL_LIBRARY NAMES gsl 
-             HINTS C:/MinGW/msys/1.0/local/lib $ENV{HOME}/local/lib $ENV{HOME}/lib)
+             HINTS C:/MinGW/msys/1.0/local/lib $ENV{HOME}/local/lib $ENV{HOME}/lib $ENV{HOME}/miniconda3/lib)
 
 find_library(GSLCBLAS_LIBRARY NAMES gslcblas 
              HINTS C:/MinGW/msys/1.0/local/lib $ENV{HOME}/local/lib $ENV{HOME}/lib)
