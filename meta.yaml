@@ -7,21 +7,24 @@ source:
 
 requirements:
   build:
-    - root
+    - minuit2
     - qt
     - qwt
     - mesalib
+    - blas-devel
     - llvm-openmp
-    - clang
+    - {{ compiler('c') }}
+    - {{ compiler('cxx') }}
     - cmake
     - make
 
   run:
-    - root
+    - minuit2
     - qt
     - qwt
     - mesalib
     - llvm-openmp
+    - blas-devel
 
 about:
   home: https://github.com/rdeboer1/AZURE2
