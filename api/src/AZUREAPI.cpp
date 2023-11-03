@@ -124,8 +124,10 @@ bool AZUREAPI::UpdateParameters( ) {
 
 int AZUREAPI::UpdateSegments(vector_r& p) {
 
-  calculatedSegments_.clear( );
   calculatedEnergies_.clear( );
+  calculatedSegments_.clear( );
+  calculatedSegmentsE1_.clear( );
+  calculatedSegmentsE2_.clear( );
 
   CNuc* localCompound = NULL;
   EData* localData = NULL;
@@ -138,9 +140,7 @@ int AZUREAPI::UpdateSegments(vector_r& p) {
   bool isValid = localCompound->TransformIn( configure( ) );
 
 
-  if( !isValid ){
-    return 0;
-  }
+  if( !isValid ) return 0;
 
   localCompound->FillMnParams(params.GetMinuitParams());
   localData->FillMnParams(params.GetMinuitParams());
@@ -162,18 +162,22 @@ int AZUREAPI::UpdateSegments(vector_r& p) {
 
     std::vector<EPoint>& data = segments[i].GetPoints();
 
-    std::vector<double> cross, energies;;
+    std::vector<double> cross, crossE1, crossE2, energies;;
     for( int k = 0; k < data.size( ); ++k ){
 
       if(!data[k].IsMapped()) data[k].Calculate(localCompound,configure());
 
       cross.push_back( data[k].GetFitCrossSection() );
+      crossE1.push_back( data[k].GetFitE1CrossSection() );
+      crossE2.push_back( data[k].GetFitE2CrossSection() );
       energies.push_back( data[k].GetCMEnergy( ) );
 
 
     }
 
     calculatedSegments_.push_back( cross );
+    calculatedSegmentsE1_.push_back( crossE1 );
+    calculatedSegmentsE2_.push_back( crossE2 );
     calculatedEnergies_.push_back( energies );
 
   }

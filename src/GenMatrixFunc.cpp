@@ -11,6 +11,8 @@
 
 void GenMatrixFunc::CalculateCrossSection(EPoint *point) {
   complex sum(0.,0.);
+  complex sumE1(0.,0.);
+  complex sumE2(0.,0.);
   int aa=compound()->GetPairNumFromKey(point->GetEntranceKey());
   int ir=0;
   while(ir<compound()->GetPair(aa)->NumDecays()) {
@@ -64,14 +66,18 @@ void GenMatrixFunc::CalculateCrossSection(EPoint *point) {
   } else {
     if(!point->IsPhase()) {
       double angleIntegratedXS=0.;
+      double angleIntegratedE1XS=0.;
+      double angleIntegratedE2XS=0.;
       if(!point->IsDifferential()) {
 	for(int k=1;k<=theDecay->NumKGroups();k++) {
 	  this->ClearTempTMatrices();
+          this->ClearTempTMatricesE1();
+          this->ClearTempTMatricesE2();
 	  for(int m=1;m<=theDecay->GetKGroup(k)->NumMGroups();m++) {
+            MGroup *theMGroup=theDecay->GetKGroup(k)->GetMGroup(m);
 	    if(compound()->GetPair(aa)->GetPType()==20) {
 	      sum+=25.*this->GetTMatrixElement(k,m)*conj(this->GetTMatrixElement(k,m));
-	    } else { 
-	      MGroup *theMGroup=theDecay->GetKGroup(k)->GetMGroup(m);
+            } else { 
 	      int lValue=compound()->GetJGroup(theMGroup->GetJNum())->GetChannel(theMGroup->GetChNum())->GetL();
 	      int lpValue=compound()->GetJGroup(theMGroup->GetJNum())->GetChannel(theMGroup->GetChpNum())->GetL();
 	      double jValue=compound()->GetJGroup(theMGroup->GetJNum())->GetJ();
@@ -80,19 +86,49 @@ void GenMatrixFunc::CalculateCrossSection(EPoint *point) {
 		TempTMatrix temptmatrix={jValue,lValue,lpValue,this->GetTMatrixElement(k,m)};
 		this->NewTempTMatrix(temptmatrix);
 	      } else this->AddToTempTMatrix(tempTNum,this->GetTMatrixElement(k,m));
-	    }
+              if (compound()->GetJGroup(theMGroup->GetJNum())->GetChannel(theMGroup->GetChpNum())->GetRadType()=='E' && 
+              compound()->GetJGroup(theMGroup->GetJNum())->GetChannel(theMGroup->GetChpNum())->GetL()==1) {
+	        int tempTNumE1=this->IsTempTMatrixE1(jValue,lValue,lpValue);
+	        if(!tempTNumE1) {
+		  TempTMatrix temptmatrixE1={jValue,lValue,lpValue,this->GetTMatrixElement(k,m)};
+		  this->NewTempTMatrixE1(temptmatrixE1);
+	        } else this->AddToTempTMatrixE1(tempTNumE1,this->GetTMatrixElement(k,m));
+              } 
+              if (compound()->GetJGroup(theMGroup->GetJNum())->GetChannel(theMGroup->GetChpNum())->GetRadType()=='E' && 
+              compound()->GetJGroup(theMGroup->GetJNum())->GetChannel(theMGroup->GetChpNum())->GetL()==2) {
+	        int tempTNumE2=this->IsTempTMatrixE2(jValue,lValue,lpValue);
+	        if(!tempTNumE2) {
+		  TempTMatrix temptmatrixE2={jValue,lValue,lpValue,this->GetTMatrixElement(k,m)};
+		  this->NewTempTMatrixE2(temptmatrixE2);
+	        } else this->AddToTempTMatrixE2(tempTNumE2,this->GetTMatrixElement(k,m)); 
+	      }
+            }
 	  }
 	  if(compound()->GetPair(aa)->GetPType()==20) continue;
 	  for(int m=1;m<=theDecay->GetKGroup(k)->NumECMGroups();m++) {
-	    ECMGroup *theECMGroup=theDecay->GetKGroup(k)->GetECMGroup(m);
-	    int lValue=theECMGroup->GetL();
+            ECMGroup *theECMGroup=theDecay->GetKGroup(k)->GetECMGroup(m);
+            int lValue=theECMGroup->GetL();
 	    int lpValue=theECMGroup->GetMult();
 	    double jValue=theECMGroup->GetJ();
-	    int tempTNum=this->IsTempTMatrix(jValue,lValue,lpValue);
+            int tempTNum=this->IsTempTMatrix(jValue,lValue,lpValue);
 	    if(!tempTNum) {
 	      TempTMatrix temptmatrix={jValue,lValue,lpValue,this->GetECTMatrixElement(k,m)};
 	      this->NewTempTMatrix(temptmatrix);
 	    } else this->AddToTempTMatrix(tempTNum,this->GetECTMatrixElement(k,m));
+            if (theECMGroup->GetRadType()=='E' && theECMGroup->GetMult()==1) {
+	      int tempTNumE1=this->IsTempTMatrixE1(jValue,lValue,lpValue);
+	      if(!tempTNumE1) {
+	        TempTMatrix temptmatrixE1={jValue,lValue,lpValue,this->GetECTMatrixElement(k,m)};
+	        this->NewTempTMatrixE1(temptmatrixE1);
+	      } else this->AddToTempTMatrixE1(tempTNumE1,this->GetECTMatrixElement(k,m));
+            }
+            if (theECMGroup->GetRadType()=='E' && theECMGroup->GetMult()==2) {
+	      int tempTNumE2=this->IsTempTMatrixE2(jValue,lValue,lpValue);
+	      if(!tempTNumE2) {
+	        TempTMatrix temptmatrixE2={jValue,lValue,lpValue,this->GetECTMatrixElement(k,m)};
+	        this->NewTempTMatrixE2(temptmatrixE2);
+	      } else this->AddToTempTMatrixE2(tempTNumE2,this->GetECTMatrixElement(k,m));     
+            }
 	  }
 	  for(int temp=1;temp<=this->NumTempTMatrices();temp++) {
 	    sum+=point->GetGeometricalFactor()*
@@ -100,10 +136,27 @@ void GenMatrixFunc::CalculateCrossSection(EPoint *point) {
 	      compound()->GetPair(aa)->GetI1I2Factor()*
 	      (this->GetTempTMatrix(temp)->TMatrix)*conj(this->GetTempTMatrix(temp)->TMatrix);
 	  }
+          for(int temp=1;temp<=this->NumTempTMatricesE1();temp++) {
+	    sumE1+=point->GetGeometricalFactor()*
+	      (2.*this->GetTempTMatrixE1(temp)->jValue+1.)*
+	      compound()->GetPair(aa)->GetI1I2Factor()*
+	      (this->GetTempTMatrixE1(temp)->TMatrix)*conj(this->GetTempTMatrixE1(temp)->TMatrix);
+	  }
+          for(int temp=1;temp<=this->NumTempTMatricesE2();temp++) {
+	    sumE2+=point->GetGeometricalFactor()*
+	      (2.*this->GetTempTMatrixE2(temp)->jValue+1.)*
+	      compound()->GetPair(aa)->GetI1I2Factor()*
+	      (this->GetTempTMatrixE2(temp)->TMatrix)*conj(this->GetTempTMatrixE2(temp)->TMatrix);
+	  }
 	}
 	angleIntegratedXS=real(sum)/100.;
+        angleIntegratedE1XS=real(sumE1)/100.;
+        angleIntegratedE2XS=real(sumE2)/100.;
+//        std::cout << angleIntegratedXS << "\t" << angleIntegratedE1XS << "\t" << angleIntegratedE2XS << std::endl;
 	if(!point->IsAngularDist()) {
 	  point->SetFitCrossSection(angleIntegratedXS);
+          point->SetFitE1CrossSection(angleIntegratedE1XS);
+          point->SetFitE2CrossSection(angleIntegratedE2XS);
 	  return;
 	}
       }   
@@ -209,6 +262,14 @@ void GenMatrixFunc::NewTempTMatrix(TempTMatrix tempTMatrix) {
   temp_t_matrices_.push_back(tempTMatrix);
 }
 
+void GenMatrixFunc::NewTempTMatrixE1(TempTMatrix tempTMatrix) {
+  temp_t_matrices_E1_.push_back(tempTMatrix);
+}
+
+void GenMatrixFunc::NewTempTMatrixE2(TempTMatrix tempTMatrix) {
+  temp_t_matrices_E2_.push_back(tempTMatrix);
+}
+
 /*!
  * Adds a value to the temporary T-Matrix element specified by its position in the TempTMatrix vector.
  */
@@ -218,12 +279,28 @@ void GenMatrixFunc::AddToTempTMatrix(int tempTMatrixNum, complex tempValue) {
   
 }
 
+void GenMatrixFunc::AddToTempTMatrixE1(int tempTMatrixNum, complex tempValue) {
+  this->GetTempTMatrixE1(tempTMatrixNum)->TMatrix+=tempValue;
+}
+
+void GenMatrixFunc::AddToTempTMatrixE2(int tempTMatrixNum, complex tempValue) {
+  this->GetTempTMatrixE2(tempTMatrixNum)->TMatrix+=tempValue;
+}
+
 /*!
  * Clears the temporary T-Matrices.
  */
 
 void GenMatrixFunc::ClearTempTMatrices() {
   temp_t_matrices_.clear();
+}
+
+void GenMatrixFunc::ClearTempTMatricesE1() {
+  temp_t_matrices_E1_.clear();
+}
+
+void GenMatrixFunc::ClearTempTMatricesE2() {
+  temp_t_matrices_E2_.clear();
 }
 
 /*!
@@ -271,6 +348,32 @@ int GenMatrixFunc::IsTempTMatrix(double jValue, int lValue, int lPrimeValue) {
   else return d;
 }
 
+int GenMatrixFunc::IsTempTMatrixE1(double jValue, int lValue, int lPrimeValue) {
+  int d=0;
+  bool e=false;
+  while(!e&&d<this->NumTempTMatricesE1()) {
+    if(jValue==this->GetTempTMatrixE1(d+1)->jValue&&
+       lValue==this->GetTempTMatrixE1(d+1)->lValue&&
+       lPrimeValue==this->GetTempTMatrixE1(d+1)->lpValue) e=true;
+    d++;
+  }
+  if(!e) return 0;
+  else return d;
+}
+
+int GenMatrixFunc::IsTempTMatrixE2(double jValue, int lValue, int lPrimeValue) {
+  int d=0;
+  bool e=false;
+  while(!e&&d<this->NumTempTMatricesE2()) {
+    if(jValue==this->GetTempTMatrixE2(d+1)->jValue&&
+       lValue==this->GetTempTMatrixE2(d+1)->lValue&&
+       lPrimeValue==this->GetTempTMatrixE2(d+1)->lpValue) e=true;
+    d++;
+  }
+  if(!e) return 0;
+  else return d;
+}
+
 /*!
  * Returns the number of temporary T-Matrix elements in the TempTMatrix vector.
  */
@@ -279,12 +382,30 @@ int GenMatrixFunc::NumTempTMatrices() const {
   return temp_t_matrices_.size();
 }
 
+int GenMatrixFunc::NumTempTMatricesE1() const {
+  return temp_t_matrices_E1_.size();
+}
+
+int GenMatrixFunc::NumTempTMatricesE2() const {
+  return temp_t_matrices_E2_.size();
+}
+
 /*!
  * Returns a pointer to the temporary T-Matrix element specified by a position in the TempTMatrix vector.
  */
 
 TempTMatrix *GenMatrixFunc::GetTempTMatrix(int tempTMatrixNum) {
   TempTMatrix *b=&temp_t_matrices_[tempTMatrixNum-1];
+  return b;
+}
+
+TempTMatrix *GenMatrixFunc::GetTempTMatrixE1(int tempTMatrixNum) {
+  TempTMatrix *b=&temp_t_matrices_E1_[tempTMatrixNum-1];
+  return b;
+}
+
+TempTMatrix *GenMatrixFunc::GetTempTMatrixE2(int tempTMatrixNum) {
+  TempTMatrix *b=&temp_t_matrices_E2_[tempTMatrixNum-1];
   return b;
 }
 

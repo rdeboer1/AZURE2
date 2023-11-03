@@ -89,6 +89,14 @@ class AZUREAPI {
    */
   vector_r calculated_segments(int i) const {return calculatedSegments_[i];};
   /*!
+   * Returns a pointer to the calculated E1 segments object.
+   */
+  vector_r calculated_segments_e1(int i) const {return calculatedSegmentsE1_[i];};
+  /*!
+   * Returns a pointer to the calculated E2 segments object.
+   */
+  vector_r calculated_segments_e2(int i) const {return calculatedSegmentsE2_[i];};
+  /*!
    * Returns a pointer to the calculated energies object.
    */
   vector_r calculated_energies(int i) const {return calculatedEnergies_[i];};
@@ -109,16 +117,19 @@ class AZUREAPI {
   CNuc *compound_;
 
   // Parameters
-  std::vector<std::string> names_;
   std::vector<bool> fixed_;
+  std::vector<std::string> names_;
   vector_r values_, transform_, norms_, normsErrors_;
 
   // Data
   std::vector<vector_r> dataEnergies_;
   std::vector<vector_r> dataSegments_;
   std::vector<vector_r> dataSegmentsErrors_;
+  
   std::vector<vector_r> calculatedEnergies_;
   std::vector<vector_r> calculatedSegments_;
+  std::vector<vector_r> calculatedSegmentsE1_;
+  std::vector<vector_r> calculatedSegmentsE2_;
 
 };
 

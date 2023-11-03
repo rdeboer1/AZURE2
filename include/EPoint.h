@@ -64,6 +64,8 @@ class EPoint {
   double GetCMCrossSectionError() const;
   double GetGeometricalFactor() const;
   double GetFitCrossSection() const;
+  double GetFitE1CrossSection() const;
+  double GetFitE2CrossSection() const;
   double GetSFactorConversion() const;
   double GetSqrtPenetrability(int,int) const;
   double GetJ() const;
@@ -85,6 +87,8 @@ class EPoint {
   void AddLegendreP(double);
   void SetGeometricalFactor(double);
   void SetFitCrossSection(double);
+  void SetFitE1CrossSection(double);
+  void SetFitE2CrossSection(double);
   void SetSFactorConversion(double);
   void SetExitKey(int);
   void CalcLegendreP(int,TargetEffect*);
@@ -134,6 +138,8 @@ class EPoint {
   double lab_dcrosssection_;
   double geofactor_;
   double fitcrosssection_;
+  double fitE1crosssection_;
+  double fitE2crosssection_;
   double sfactorconv_;
   double j_value_;
   double stoppingPower_;

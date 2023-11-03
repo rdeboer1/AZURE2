@@ -34,6 +34,8 @@ EPoint::EPoint(DataLine dataLine, ESegment *parent) {
   lab_dcrosssection_=dataLine.error();
   geofactor_=0.;
   fitcrosssection_=0.;
+  fitE1crosssection_=0.;
+  fitE2crosssection_=0.;  
   sfactorconv_=0.;
   is_differential_=parent->IsDifferential();
   is_phase_=parent->IsPhase();
@@ -333,6 +335,14 @@ double EPoint::GetFitCrossSection() const {
   return fitcrosssection_;
 }
 
+double EPoint::GetFitE1CrossSection() const {
+  return fitE1crosssection_;
+}
+
+double EPoint::GetFitE2CrossSection() const {
+  return fitE2crosssection_;
+}
+
 /*!
  * Returns the multiplicative conversion factor from cross section to s-factor.
  */
@@ -581,6 +591,14 @@ void EPoint::SetGeometricalFactor(double geoFactor) {
 
 void EPoint::SetFitCrossSection(double crossSection) {
   fitcrosssection_=crossSection;
+}
+
+void EPoint::SetFitE1CrossSection(double e1crossSection) {
+  fitE1crosssection_= e1crossSection;
+}
+
+void EPoint::SetFitE2CrossSection(double e2crossSection) {
+  fitE2crosssection_= e2crossSection;
 }
 
 /*!

@@ -57,13 +57,25 @@ class GenMatrixFunc {
   virtual void CalculateTMatrix(EPoint*)=0;
   void CalculateCrossSection(EPoint*);
   void NewTempTMatrix(TempTMatrix);
+  void NewTempTMatrixE1(TempTMatrix);
+  void NewTempTMatrixE2(TempTMatrix);
   void AddToTempTMatrix(int,complex);
+  void AddToTempTMatrixE1(int,complex);
+  void AddToTempTMatrixE2(int,complex);
   void ClearTempTMatrices();
+  void ClearTempTMatricesE1();
+  void ClearTempTMatricesE2();
   void AddTMatrixElement(int,int,complex,int decayNum=1);
   void AddECTMatrixElement(int,int,complex);
   int IsTempTMatrix(double,int,int);
+  int IsTempTMatrixE1(double,int,int);
+  int IsTempTMatrixE2(double,int,int);
   int NumTempTMatrices() const;
+  int NumTempTMatricesE1() const;
+  int NumTempTMatricesE2() const;
   TempTMatrix *GetTempTMatrix(int);
+  TempTMatrix *GetTempTMatrixE1(int);
+  TempTMatrix *GetTempTMatrixE2(int);
   complex GetTMatrixElement(int,int,int decayNum=1) const;
   complex GetECTMatrixElement(int,int) const;
 
@@ -82,6 +94,8 @@ class GenMatrixFunc {
   matrix_c ec_tmatrix_;
  private:
   std::vector<TempTMatrix> temp_t_matrices_;
+  std::vector<TempTMatrix> temp_t_matrices_E1_;
+  std::vector<TempTMatrix> temp_t_matrices_E2_;
 };
 
 #endif
