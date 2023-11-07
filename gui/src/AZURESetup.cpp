@@ -949,7 +949,6 @@ void AZURESetup::SaveAndRun() {
     }
   }
 
-  std::cout << "Starting AZUREMainThread ..." << std::endl;
   azureMain = new AZUREMainThread(runTab,GetConfig());
   connect(azureMain,SIGNAL(finished()),this,SLOT(DeleteThread()));
   setWindowTitle(QString("AZURE2 -- %1 -- Running").arg(QString::fromStdString(GetConfig().configfile)));

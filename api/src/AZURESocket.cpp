@@ -198,6 +198,20 @@ bool AZURESocket::start() {
       sendPacket( response );
     }
 
+    // Get calculated E1 segments
+    if( buffer[0] == 17 ){
+      int idx = (int)buffer[2];
+      vector_r response = api_->calculated_segments_e1( idx );
+      sendPacket( response );
+    }
+
+    // Get calculated E2 segments
+    if( buffer[0] == 18 ){
+      int idx = (int)buffer[2];
+      vector_r response = api_->calculated_segments_e2( idx );
+      sendPacket( response );
+    }
+
     close(clientSocket_);
 
   }
