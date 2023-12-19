@@ -568,7 +568,7 @@ int main(int argc,char *argv[]){
 #ifdef GUI_BUILD
   bool useGUI=true;
   for(int i=1;i<argc;i++) 
-    if(strcmp(argv[i],"--no-gui")==0) useGUI=false;
+    if(strcmp(argv[i],"--no-gui")==0 || strcmp(argv[i],"--use-api")==0) useGUI=false;
   if(useGUI) return start_gui(argc,argv);
 #endif
 
