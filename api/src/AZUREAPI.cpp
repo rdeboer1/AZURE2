@@ -134,11 +134,9 @@ int AZUREAPI::UpdateSegments(vector_r& p) {
   localCompound = compound();
   localData = data();
 
-
   AZUREParams params;
   localCompound->FillCompoundFromParamsPhysical(p);
   bool isValid = localCompound->TransformIn( configure( ) );
-
 
   if( !isValid ) return 0;
 

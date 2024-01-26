@@ -526,11 +526,12 @@ bool CNuc::TransformIn(const Config& configure) {
 	      penes.push_back(1.0);
 	    }
 	  }
+	  // FIXME
 	  if(denom<0.){ //configure.outStream << "WARNING: Denominator less than zero in E=" 
 					//   << theLevel->GetE() << " MeV resonance transformation.  "
 					//   <<  "Tranformation may not have been successful." 
 					//   << std::endl;
-					   return false;
+					return true;
 	  }
 	  double nFSum=1.0;
 	  for(int ch=1;ch<=theJGroup->NumChannels();ch++) {
@@ -597,10 +598,11 @@ bool CNuc::TransformIn(const Config& configure) {
 		  else tempGammas[levelKeys.size()-1][ch-1]=sqrt(pow(tempGammas[levelKeys.size()-1][ch-1],2.0)-
 								 pow(imag(externalWidth),2.0))-real(externalWidth);
 		} else {
+			// FIXME
 		  //configure.outStream << "**WARNING: Imaginary portion of external width \n\tfor j=" << j << " la=" 
 			//    << la << " ch=" << ch << " is greater than total width." << std::endl;
 		  tempGammas[levelKeys.size()-1][ch-1]=-real(externalWidth);
-		  return false;
+		  return true;
 		}
 	      }
 	      shifts[levelKeys.size()-1].push_back(shifts[levelKeys.size()-1][0]);
