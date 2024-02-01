@@ -12,7 +12,6 @@ requirements:
     - qwt
     - gsl
     - mesalib
-    - blas-devel
     - llvm-openmp
     - {{ compiler('c') }}
     - {{ compiler('cxx') }}
@@ -26,7 +25,6 @@ requirements:
     - gsl
     - mesalib
     - llvm-openmp
-    - blas-devel
 
 about:
   home: https://github.com/rdeboer1/AZURE2
