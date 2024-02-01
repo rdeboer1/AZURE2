@@ -63,7 +63,7 @@ class AZUREAPI {
   /*!
    * Returns a pointer to the parameter values object.
    */
-  vector_r params_values() const {return transform_;};
+  vector_r params_values() const {return values_;};
   /*!
    * Returns a pointer to the parameter names object.
    */
@@ -71,7 +71,7 @@ class AZUREAPI {
   /*!
    * Returns a pointer to the parameter names object.
    */
-  std::vector<bool> params_fixed() const {return fixed_;};
+  vector_r params_all() const {return all_;};
   /*!
    * Returns a pointer to the calculated segments object.
    */
@@ -108,6 +108,15 @@ class AZUREAPI {
    * Returns a pointer to the segments norms errors.
    */
   vector_r norms_errors( ) const {return normsErrors_;};
+  /*!
+   * Returns a pointer to the data sfactor conversion.
+   */
+  vector_r data_conv( int i ) const {return dataConv_[i];};
+  /*!
+   * Returns a pointer to the calculated sfactor conversion.
+   */
+  vector_r calculated_conv( int i ) const {return calculatedConv_[i];};
+ 
  
  private:
 
@@ -119,13 +128,15 @@ class AZUREAPI {
   // Parameters
   std::vector<bool> fixed_;
   std::vector<std::string> names_;
-  vector_r values_, transform_, norms_, normsErrors_;
+  vector_r all_, values_, norms_, normsErrors_;
 
   // Data
+  std::vector<vector_r> dataConv_;
   std::vector<vector_r> dataEnergies_;
   std::vector<vector_r> dataSegments_;
   std::vector<vector_r> dataSegmentsErrors_;
   
+  std::vector<vector_r> calculatedConv_;
   std::vector<vector_r> calculatedEnergies_;
   std::vector<vector_r> calculatedSegments_;
   std::vector<vector_r> calculatedSegmentsE1_;

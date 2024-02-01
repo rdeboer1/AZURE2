@@ -92,7 +92,7 @@ bool AZURESocket::start() {
       sendPacket( response );
     }
 
-    // Send the parameter name
+    // Send the parameter name (FIXME)
     if( buffer[0] == 3 ){
       int idx = (int)buffer[1];
       api_->UpdateParameters( );
@@ -100,10 +100,10 @@ bool AZURESocket::start() {
       sendPacket( response );
     }
 
-    // Send the parameter fixed
+    // Send all the parameters
     if( buffer[0] == 4 ){
       api_->UpdateParameters( );
-      std::vector<bool> response = api_->params_fixed( );
+      vector_r response = api_->params_all( );
       sendPacket( response );
     }
 
@@ -209,6 +209,20 @@ bool AZURESocket::start() {
     if( buffer[0] == 18 ){
       int idx = (int)buffer[2];
       vector_r response = api_->calculated_segments_e2( idx );
+      sendPacket( response );
+    }
+
+    // Get data conversion
+    if( buffer[0] == 19 ){
+      int idx = (int)buffer[2];
+      vector_r response = api_->data_conv( idx );
+      sendPacket( response );
+    }
+
+    // Get calculated conversion
+    if( buffer[0] == 20 ){
+      int idx = (int)buffer[2];
+      vector_r response = api_->calculated_conv( idx );
       sendPacket( response );
     }
 

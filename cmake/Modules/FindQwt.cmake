@@ -45,7 +45,7 @@
 
 find_path ( QWT_INCLUDE_DIR
   NAMES qwt_plot.h
-  HINTS ${QT_INCLUDE_DIR}
+  HINTS ${QT_INCLUDE_DIR} /usr/include/qt5/qwt/ /usr/include/qwt/ /usr/local/include/qwt/ /opt/local/include/qwt/
   PATH_SUFFIXES qwt qwt-qt3 qwt-qt4 qwt-qt5
 )
 

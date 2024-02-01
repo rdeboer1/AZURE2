@@ -152,7 +152,6 @@ void GenMatrixFunc::CalculateCrossSection(EPoint *point) {
 	angleIntegratedXS=real(sum)/100.;
         angleIntegratedE1XS=real(sumE1)/100.;
         angleIntegratedE2XS=real(sumE2)/100.;
-//        std::cout << angleIntegratedXS << "\t" << angleIntegratedE1XS << "\t" << angleIntegratedE2XS << std::endl;
 	if(!point->IsAngularDist()) {
 	  point->SetFitCrossSection(angleIntegratedXS);
           point->SetFitE1CrossSection(angleIntegratedE1XS);
