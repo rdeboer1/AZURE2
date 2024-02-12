@@ -36,22 +36,22 @@ bool AZURESocket::start() {
 
   double buffer[BUFFER_SIZE*sizeof( uint64_t )];
 
+  // Accept incoming connections
+  clientSocket_ = accept(serverSocket_, (struct sockaddr *)&clientAddress_, &clientAddressSize);
+  if (clientSocket_ == -1) {
+    std::cerr << "Error accepting connection." << std::endl;
+    return false;
+  }
+
   // Receive and process commands from the client
   while (true) {
     
     memset(buffer, 0, BUFFER_SIZE);
 
-    // Accept incoming connections
-    clientSocket_ = accept(serverSocket_, (struct sockaddr *)&clientAddress_, &clientAddressSize);
-    if (clientSocket_ == -1) {
-      std::cerr << "Error accepting connection." << std::endl;
-      return false;
-    }
-
     //std::cout << "Client connected." << std::endl;
 
     // Receive command from client
-    ssize_t bytesRead = recv(clientSocket_, buffer, BUFFER_SIZE * sizeof( double ), 0);
+    ssize_t bytesRead = recv(clientSocket_, buffer, BUFFER_SIZE * sizeof( double ), MSG_WAITALL);
     if (bytesRead == -1) {
       //std::cerr << "Error receiving data." << std::endl;
       //break;
@@ -226,7 +226,7 @@ bool AZURESocket::start() {
       sendPacket( response );
     }
 
-    close(clientSocket_);
+    //close(clientSocket_);
 
   }
 
@@ -248,7 +248,7 @@ bool AZURESocket::sendPacket( vector_r response ){
   // Send response back to the client
   int bytesSent = send(clientSocket_, &buffer, BUFFER_SIZE * sizeof( double ), 0);
   if (bytesSent == -1) {
-    //std::cerr << "Error sending data." << std::endl;
+    std::cerr << "Error sending data." << std::endl;
     //break;
   }
 
@@ -267,7 +267,7 @@ bool AZURESocket::sendPacket( std::string response ){
   // Send response back to the client
   int bytesSent = send(clientSocket_, &buffer, BUFFER_SIZE * sizeof( std::string ), 0);
   if (bytesSent == -1) {
-    //std::cerr << "Error sending data." << std::endl;
+    std::cerr << "Error sending data." << std::endl;
     //break;
   }
 
@@ -286,7 +286,7 @@ bool AZURESocket::sendPacket( std::vector<bool> response ){
   // Send response back to the client
   int bytesSent = send(clientSocket_, &buffer, BUFFER_SIZE * sizeof( double ), 0);
   if (bytesSent == -1) {
-    //std::cerr << "Error sending data." << std::endl;
+    std::cerr << "Error sending data." << std::endl;
     //break;
   }
 
