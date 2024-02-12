@@ -74,7 +74,7 @@ bool AZURESocket::start() {
     }
 
     // Calculate segments from params
-    if( buffer[0] == 1 ){   
+    else if( buffer[0] == 1 ){   
       vector_r params;
       for( int i = 0; i < buffer[1]; ++i ){
         params.push_back( buffer[2+i] );
@@ -86,14 +86,14 @@ bool AZURESocket::start() {
     }
 
     // Send the parameters
-    if( buffer[0] == 2 ){
+    else if( buffer[0] == 2 ){
       api_->UpdateParameters( );
       vector_r response = api_->params_values( );
       sendPacket( response );
     }
 
     // Send the parameter name (FIXME)
-    if( buffer[0] == 3 ){
+    else if( buffer[0] == 3 ){
       int idx = (int)buffer[1];
       api_->UpdateParameters( );
       std::string response = api_->params_names( idx );
@@ -101,14 +101,14 @@ bool AZURESocket::start() {
     }
 
     // Send all the parameters
-    if( buffer[0] == 4 ){
+    else if( buffer[0] == 4 ){
       api_->UpdateParameters( );
       vector_r response = api_->params_all( );
       sendPacket( response );
     }
 
     // Calculate external capture
-    if( buffer[0] == 5 ){
+    else if( buffer[0] == 5 ){
       api_->CalculateExternalCapture( );
       std::vector<bool> response;
       response.push_back( 1 );
@@ -116,28 +116,28 @@ bool AZURESocket::start() {
     }
 
     // Get data energies
-    if( buffer[0] == 6 ){
+    else if( buffer[0] == 6 ){
       int idx = (int)buffer[2];
       vector_r response = api_->data_energies( idx );
       sendPacket( response );
     }
 
     // Get data segments
-    if( buffer[0] == 7 ){
+    else if( buffer[0] == 7 ){
       int idx = (int)buffer[2];
       vector_r response = api_->data_segments( idx );
       sendPacket( response );
     }
 
     // Get data segments errors
-    if( buffer[0] == 8 ){
+    else if( buffer[0] == 8 ){
       int idx = (int)buffer[2];
       vector_r response = api_->data_segments_errors( idx );
       sendPacket( response );
     }
 
     // Update data
-    if( buffer[0] == 9 ){
+    else if( buffer[0] == 9 ){
       double nSegments = (double)api_->UpdateData( );
       std::vector<double> response;
       response.push_back( nSegments );
@@ -145,7 +145,7 @@ bool AZURESocket::start() {
     }
 
     // Set to data mode
-    if( buffer[0] == 10 ){
+    else if( buffer[0] == 10 ){
       api_->SetData( );
       std::vector<bool> response;
       response.push_back( 1 );
@@ -153,7 +153,7 @@ bool AZURESocket::start() {
     }
 
     // Set to extrapolation mode
-    if( buffer[0] == 11 ){
+    else if( buffer[0] == 11 ){
       api_->SetExtrap( );
       std::vector<bool> response;
       response.push_back( 1 );
@@ -161,21 +161,21 @@ bool AZURESocket::start() {
     }
 
     // Get calculated segments
-    if( buffer[0] == 12 ){
+    else if( buffer[0] == 12 ){
       int idx = (int)buffer[2];
       vector_r response = api_->calculated_segments( idx );
       sendPacket( response );
     }
 
     // Get calculated energies
-    if( buffer[0] == 13 ){
+    else if( buffer[0] == 13 ){
       int idx = (int)buffer[2];
       vector_r response = api_->calculated_energies( idx );
       sendPacket( response );
     }
 
     // Change radius
-    if( buffer[0] == 14 ){
+    else if( buffer[0] == 14 ){
       int idx = (int)buffer[2];
       double radius = (double)buffer[3];
       api_->SetRadius( idx, radius );
@@ -185,42 +185,42 @@ bool AZURESocket::start() {
     }
 
     // Send the norms
-    if( buffer[0] == 15 ){
+    else if( buffer[0] == 15 ){
       api_->UpdateNorms( );
       vector_r response = api_->norms( );
       sendPacket( response );
     }
 
     // Send the norms errors
-    if( buffer[0] == 16 ){
+    else if( buffer[0] == 16 ){
       api_->UpdateNorms( );
       vector_r response = api_->norms_errors( );
       sendPacket( response );
     }
 
     // Get calculated E1 segments
-    if( buffer[0] == 17 ){
+    else if( buffer[0] == 17 ){
       int idx = (int)buffer[2];
       vector_r response = api_->calculated_segments_e1( idx );
       sendPacket( response );
     }
 
     // Get calculated E2 segments
-    if( buffer[0] == 18 ){
+    else if( buffer[0] == 18 ){
       int idx = (int)buffer[2];
       vector_r response = api_->calculated_segments_e2( idx );
       sendPacket( response );
     }
 
     // Get data conversion
-    if( buffer[0] == 19 ){
+    else if( buffer[0] == 19 ){
       int idx = (int)buffer[2];
       vector_r response = api_->data_conv( idx );
       sendPacket( response );
     }
 
     // Get calculated conversion
-    if( buffer[0] == 20 ){
+    else if( buffer[0] == 20 ){
       int idx = (int)buffer[2];
       vector_r response = api_->calculated_conv( idx );
       sendPacket( response );
@@ -248,7 +248,7 @@ bool AZURESocket::sendPacket( vector_r response ){
   // Send response back to the client
   int bytesSent = send(clientSocket_, &buffer, BUFFER_SIZE * sizeof( double ), 0);
   if (bytesSent == -1) {
-    std::cerr << "Error sending data." << std::endl;
+    //std::cerr << "Error sending data." << std::endl;
     //break;
   }
 
@@ -267,7 +267,7 @@ bool AZURESocket::sendPacket( std::string response ){
   // Send response back to the client
   int bytesSent = send(clientSocket_, &buffer, BUFFER_SIZE * sizeof( std::string ), 0);
   if (bytesSent == -1) {
-    std::cerr << "Error sending data." << std::endl;
+    //std::cerr << "Error sending data." << std::endl;
     //break;
   }
 
@@ -286,7 +286,7 @@ bool AZURESocket::sendPacket( std::vector<bool> response ){
   // Send response back to the client
   int bytesSent = send(clientSocket_, &buffer, BUFFER_SIZE * sizeof( double ), 0);
   if (bytesSent == -1) {
-    std::cerr << "Error sending data." << std::endl;
+    //std::cerr << "Error sending data." << std::endl;
     //break;
   }
 
