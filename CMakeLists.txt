@@ -26,12 +26,12 @@ option (BUILD_LIBRARY
        "Build AZURE2 as a library" OFF)
 
 option (BUILD_GUI 
-       "Build AZURE2 with graphical setup program" YES)
+       "Build AZURE2 with graphical setup program" NO)
 option (USE_STAT
           "Use stat() function to check for directories.  Not
           recommended for windows builds" YES)
 option (USE_QWT
-          "Use Qwt to build Plot tab." YES)
+          "Use Qwt to build Plot tab." NO)
 option (USE_READLINE
 		  "Use Readline library for CLI input." YES)
 option(USE_GCOV 
