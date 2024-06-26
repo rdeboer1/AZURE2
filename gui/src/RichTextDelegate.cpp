@@ -3,6 +3,7 @@
 #include <QAbstractTextDocumentLayout>
 #include <QApplication>
 #include <QPushButton>
+#include <QStyleOptionViewItem>
 
 #include "RichTextDelegate.h"
 
@@ -11,7 +12,7 @@ void RichTextDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opti
   QString value = index.data(Qt::DisplayRole).toString();
   
   document.setHtml(value);
-  QStyleOptionViewItemV4 opt(option);
+  QStyleOptionViewItem opt(option);
   initStyleOption(&opt, index);
 
   document.setTextWidth(opt.rect.width());

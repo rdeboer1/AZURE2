@@ -295,7 +295,7 @@ bool TargetIntTab::writeFile(QTextStream& outStream) {
     outStream << qSetFieldWidth(0) << "              " <<  lines.at(i).qCoefficients.size() << ' ';
     for(int j=0;j<lines.at(i).qCoefficients.size();j++) 
       outStream << qSetFieldWidth(0) <<  lines.at(i).qCoefficients.at(j) << ' ';
-    outStream<<endl;
+    outStream<<Qt::endl;
   }
 
   return true;

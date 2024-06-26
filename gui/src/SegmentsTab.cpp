@@ -772,7 +772,7 @@ bool SegmentsTab::writeSegDataFile(QTextStream& outStream) {
     outStream << qSetFieldWidth(15) << lines.at(i).dataNorm
 	      << qSetFieldWidth(15) << lines.at(i).varyNorm
 	      << qSetFieldWidth(15) << lines.at(i).dataNormError
-	      << qSetFieldWidth(0) << lines.at(i).dataFile << endl;
+	      << qSetFieldWidth(0) << lines.at(i).dataFile << Qt::endl;
   }
  
   return true;
@@ -841,13 +841,13 @@ bool SegmentsTab::writeSegTestFile(QTextStream& outStream) {
       outStream << qSetFieldWidth(15) << lines.at(i).dataType
 		<< qSetFieldWidth(15) << lines.at(i).phaseJ
 		<< qSetFieldWidth(0) << lines.at(i).phaseL 
-		<< endl;	
+		<< Qt::endl;
     } else if(lines.at(i).dataType==3)  {
       outStream  << qSetFieldWidth(15) << lines.at(i).dataType
 		 << qSetFieldWidth(0) << lines.at(i).maxAngDistOrder
-		 << endl;
+		 << Qt::endl;
     } else outStream << qSetFieldWidth(0) << lines.at(i).dataType 
-		     << endl;
+		     << Qt::endl;
   }
 
   return true;
