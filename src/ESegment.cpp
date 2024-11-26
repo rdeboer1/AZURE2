@@ -20,8 +20,10 @@ ESegment::ESegment(SegLine segLine) {
   e_step_=0.0;
   a_step_=0.0;
   segment_chi_squared_=0.0;
-  if(segLine.isDiff()==1) isdifferential_=true;
+  if(segLine.isDiff()==1 || segLine.isDiff()==4) isdifferential_=true;
   else isdifferential_=false;
+  if(segLine.isDiff()==4) iscmdifferential_=true;
+  else iscmdifferential_=false;
   if(segLine.isDiff()==2) {
     isphase_=true;
     j_=segLine.phaseJ();
@@ -59,8 +61,10 @@ ESegment::ESegment(ExtrapLine extrapLine) {
   e_step_=extrapLine.eStep();
   a_step_=extrapLine.aStep();
   segment_chi_squared_=0.0;
-  if(extrapLine.isDiff()==1) isdifferential_=true;
+  if(extrapLine.isDiff()==1 || extrapLine.isDiff()==5) isdifferential_=true;
   else isdifferential_=false;
+  if(extrapLine.isDiff()==5) iscmdifferential_=true;
+  else iscmdifferential_=false;
   if(extrapLine.isDiff()==2) {
     isphase_=true;
     j_=extrapLine.phaseJ();
@@ -109,6 +113,14 @@ bool ESegment::IsInSegment(EPoint point) {
 
 bool ESegment::IsDifferential() const {
   return isdifferential_;
+}
+
+/*!
+ * Returns true if the segment is differential C.M. cross section, otherwise returns false.
+ */
+
+bool ESegment::IsCMDifferential() const {
+  return iscmdifferential_;
 }
 
 /*!
@@ -181,8 +193,8 @@ int ESegment::GetExitKey() const {
 
 /*!
  * Fills the segment with points from the specified data file according to the
- * maximum and minimum energy and angle ranges.  The data is assumed to be entirely
- * in the lab frame, and conversions are performed to the center of mass frame.
+ * maximum and minimum energy and angle ranges.  If the data 
+ * in the lab frame, conversions are performed to the center of mass frame.
  */
 
 int ESegment::Fill(CNuc *theCNuc, EData *theData, const Config& configure) {
@@ -198,15 +210,28 @@ int ESegment::Fill(CNuc *theCNuc, EData *theData, const Config& configure) {
 	PPair *entrancePair=theCNuc->GetPair(theCNuc->GetPairNumFromKey(this->GetEntranceKey()));
 	PPair *exitPair=theCNuc->GetPair(theCNuc->GetPairNumFromKey(this->GetExitKey()));
 	this->GetPoint(this->NumPoints())->SetParentData(theData);
-	if(entrancePair->GetPType()==20) this->GetPoint(this->NumPoints())->ConvertDecayEnergy(exitPair);
-	else this->GetPoint(this->NumPoints())->ConvertLabEnergy(entrancePair);
-	if(exitPair->GetPType()==0&&this->IsDifferential()&&!this->IsPhase()) {
+	if(entrancePair->GetPType()==20) {
+           this->GetPoint(this->NumPoints())->ConvertDecayEnergy(exitPair);
+        } else if (this->IsCMDifferential()) {
+//          this->GetPoint(this->NumPoints())->ConvertExcitationEnergy(entrancePair);
+          this->GetPoint(this->NumPoints())->ConvertLabEnergy(entrancePair); 
+        } else if(!this->IsCMDifferential()){
+          this->GetPoint(this->NumPoints())->ConvertLabEnergy(entrancePair);
+        }
+	if(exitPair->GetPType()==0&&this->IsDifferential()&&!this->IsPhase()&&!this->IsCMDifferential()) {
 	  if(this->GetEntranceKey()==this->GetExitKey()) {
 	    this->GetPoint(this->NumPoints())->ConvertLabAngle(entrancePair);
 	  } else {
 	    this->GetPoint(this->NumPoints())->ConvertLabAngle(entrancePair,exitPair,configure);
 	  }
 	  this->GetPoint(this->NumPoints())->ConvertCrossSection(entrancePair,exitPair);
+	}
+//        if(exitPair->GetPType()==0&&!this->IsDifferential()&&!this->IsPhase()&&this->IsCMDifferential()) {
+//          this->GetPoint(this->NumPoints())->ConvertCMAngle(entrancePair,exitPair,configure);
+//        }
+	if(exitPair->GetPType()==10&&this->IsDifferential()&&!this->IsPhase()&&!this->IsCMDifferential()) {
+	  this->GetPoint(this->NumPoints())->ConvertLabAngleGammas(entrancePair);
+	  this->GetPoint(this->NumPoints())->ConvertCrossSectionGammas(entrancePair);
 	}
       }
     }
@@ -290,6 +315,14 @@ double ESegment::GetSegmentChiSquared() const {
 }
 
 /*!
+ * Returns the chi-squared value due to the normalization for each segment after the fitting process.
+ */
+
+//double ESegment::GetNormChiSquared() const {
+//  return norm_chi_squared_;
+//}
+
+/*!
  * Returns the energy step to take when creating points in a segment.  Only applies for extrapolation segments.
  */
 
@@ -360,6 +393,14 @@ void ESegment::AddPoint(EPoint point) {
 void ESegment::SetSegmentChiSquared(double chiSquared) {
   segment_chi_squared_=chiSquared;
 }
+
+/*!
+ * Sets the chi squared value for the segment normalization during the fitting process.  
+ */
+
+//void ESegment::SetNormChiSquared(double chiSquared) {
+//  norm_chi_squared_=chiSquared;
+//}
 
 /*!
  * Sets the position of the corresponding TargetEffect object in the vector

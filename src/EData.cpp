@@ -190,15 +190,20 @@ int EData::MakePoints(const Config& configure, CNuc *theCNuc) {
 		EPoint *thePoint=theSegment->GetPoint(theSegment->NumPoints());
 		thePoint->SetParentData(this);
 		if(entrancePair->GetPType()==20) thePoint->ConvertDecayEnergy(exitPair);
-		else thePoint->ConvertLabEnergy(entrancePair);
+		else if(!theSegment->IsCMDifferential()) thePoint->ConvertLabEnergy(entrancePair);
 		if(exitPair->GetPType()==0&&theSegment->IsDifferential()&&
 		   !theSegment->IsPhase()&&!theSegment->IsAngularDist()) {
 		  if(theSegment->GetEntranceKey()==theSegment->GetExitKey()) {
 		    thePoint->ConvertLabAngle(entrancePair);
-		  } else {
+		  } else if(!theSegment->IsCMDifferential()) {
 		    thePoint->ConvertLabAngle(entrancePair,exitPair,configure);
 		  }
-		  thePoint->ConvertCrossSection(entrancePair,exitPair);
+		  if(!theSegment->IsCMDifferential()) thePoint->ConvertCrossSection(entrancePair,exitPair);
+		}
+		if(exitPair->GetPType()==10&&theSegment->IsDifferential()&&
+		  !theSegment->IsPhase()&&!theSegment->IsAngularDist()){
+		    thePoint->ConvertLabAngleGammas(entrancePair);
+		    thePoint->ConvertCrossSectionGammas(entrancePair);
 		}
 		if(eStep==0.0) break;
 	      }
@@ -339,8 +344,8 @@ int EData::ReadTargetEffectsFile(const Config& configure, CNuc *compound) {
 	    double targetThickness = cmConversion*targetEffect->TargetThickness(point->GetLabEnergy(),configure);
 	    point->SetTargetThickness(targetThickness);
 	    if(targetEffect->IsConvolution()) {
-	      backwardDepth=targetThickness+targetEffect->convolutionRange*targetEffect->GetSigma();
-	      forwardDepth=targetEffect->convolutionRange*targetEffect->GetSigma();
+	      backwardDepth=targetThickness+targetEffect->convolutionRange*targetEffect->GetSigma()*5.0;
+	      forwardDepth=targetEffect->convolutionRange*targetEffect->GetSigma()*5.0;
 	    } else {
 	      backwardDepth=targetThickness;
 	      forwardDepth=0.0;
@@ -446,22 +451,18 @@ void EData::ResetIterations(){
 
 int EData::Initialize(CNuc *compound,const Config &configure) {
   //Calculate channel lo-matrix and channel penetrability for each channel at each local energy
-  if( !(configure.paramMask & Config::USE_API) )
-    configure.outStream << "Calculating Lo-Matrix, Phases, and Penetrabilities..." << std::endl;
+  configure.outStream << "Calculating Lo-Matrix, Phases, and Penetrabilities..." << std::endl;
   if(this->CalcEDependentValues(compound,configure)==-1) return -1;
   if((configure.fileCheckMask|configure.screenCheckMask) & Config::CHECK_ENERGY_DEP) 
-    this->PrintEDependentValues(configure,compound);
-
+    this->PrintEDependentValues(configure,compound); 
   //Calculate legendre polynomials for each data point
-  if( !(configure.paramMask & Config::USE_API) )
-    configure.outStream << "Calculating Legendre Polynomials..." << std::endl;
-  this->CalcLegendreP(configure.maxLOrder);
+  configure.outStream << "Calculating Legendre Polynomials..." << std::endl;
+  this->CalcLegendreP(configure.maxLOrder,compound);
   if((configure.fileCheckMask|configure.screenCheckMask) & Config::CHECK_LEGENDRE) 
     this->PrintLegendreP(configure);
 
   //Calculate Coulomb Amplitudes
-  if( !(configure.paramMask & Config::USE_API) )
-    configure.outStream << "Calculating Coulomb Amplitudes..." << std::endl;
+  configure.outStream << "Calculating Coulomb Amplitudes..." << std::endl;
   this->CalcCoulombAmplitude(compound);
   if((configure.fileCheckMask|configure.screenCheckMask) & Config::CHECK_COUL_AMPLITUDES) {
     this->PrintCoulombAmplitude(configure,compound);
@@ -469,8 +470,7 @@ int EData::Initialize(CNuc *compound,const Config &configure) {
 
   //Calculate new ec amplitudes
   if(configure.paramMask & Config::USE_EXTERNAL_CAPTURE) {
-    if( !(configure.paramMask & Config::USE_API) )
-      configure.outStream << "Calculating External Capture Amplitudes..." << std::endl;
+    configure.outStream << "Calculating External Capture Amplitudes..." << std::endl;
     if(this->CalculateECAmplitudes(compound,configure)==-1) return -1;
   }
   return 0;
@@ -575,7 +575,7 @@ void EData::PrintData(const Config &configure) {
  * Calls EPoint::CalcLegendreP for each point in the entire EData object.
  */
 
-void EData::CalcLegendreP(int maxL) { 
+void EData::CalcLegendreP(int maxL,CNuc *theCNuc) { 
   for(ESegmentIterator segment=GetSegments().begin();segment<GetSegments().end();segment++) { 
     TargetEffect *effect = (segment->IsTargetEffect() && 
 			    this->GetTargetEffect(segment->GetTargetEffectNum())->IsQCoefficients()) ?
@@ -583,7 +583,7 @@ void EData::CalcLegendreP(int maxL) {
 #pragma omp parallel for 
     for(int i=1;i<=segment->NumPoints();i++) {
       EPoint* point=segment->GetPoint(i);
-      point->CalcLegendreP(maxL, effect);    
+      point->CalcLegendreP(maxL, theCNuc, effect);    
     }
   }
 }
@@ -645,6 +645,7 @@ int EData::CalcEDependentValues(CNuc *theCNuc,const Config& configure) {
 	} catch(GSLException e) {
 #pragma omp critical 
 	  { 
+	    std::cout<<point->GetLabEnergy()<<"\t"<<point->GetLabAngle()<<std::endl;
 	    configure.outStream << e.what() << std::endl;
 	    localStop = true;
 	  }
@@ -675,14 +676,15 @@ void EData::PrintEDependentValues(const Config &configure,CNuc *theCNuc) {
     << "************************************" << std::endl
     << "*  Lo Matrix and Penetrabilities   *" << std::endl
     << "************************************" << std::endl;
-    out << std::setw(10) << "Seg #"
-    << std::setw(10) << "Point #"
+    out << std::setw(10) << "Seg_#"
+    << std::setw(10) << "Point_#"
     << std::setw(5)  << "j" 
     << std::setw(5)  << "ch" 
     << std::setw(5)  << "l"
-    << std::setw(15) << "E chan"
-    << std::setw(15) << "pene" 
-    << std::setw(25) << "Lo" << std::endl;
+    << std::setw(15) << "E_chan"
+    << std::setw(15) << "sqrt_pene" 
+    << std::setw(25) << "Lo" 
+    << std::setw(25) << "expHSP" << std::endl;
     for(EDataIterator data=begin();data!=end();data++) {
       double inEnergy=data.point()->GetCMEnergy()
         +theCNuc->GetPair(theCNuc->GetPairNumFromKey(data.segment()->GetEntranceKey()))->GetSepE();
@@ -694,6 +696,8 @@ void EData::PrintEDependentValues(const Config &configure,CNuc *theCNuc) {
 	    PPair *thePair=theCNuc->GetPair(theChannel->GetPairNum());
 	    int lValue=theChannel->GetL();
 	    double localEnergy=inEnergy-thePair->GetSepE()-thePair->GetExE();
+            complex loElement = data.point()->GetLoElement(j,ch);
+            complex expHSP = data.point()->GetExpHardSpherePhase(j,ch);
 	    out << std::setw(10) << data.segment()-GetSegments().begin()+1
 		<< std::setw(10) << data.point()-(data.segment()->GetPoints()).begin()+1
 		<< std::setw(5) << j 
@@ -701,7 +705,8 @@ void EData::PrintEDependentValues(const Config &configure,CNuc *theCNuc) {
 		<< std::setw(5) << lValue 
 		<< std::setw(15) << localEnergy 
 		<< std::setw(15) << data.point()->GetSqrtPenetrability(j,ch)
-		<< std::setw(25) << data.point()->GetLoElement(j,ch) << std::endl;
+		<< std::setw(25) << loElement.real() << " " << loElement.imag() 
+                << std::setw(25) << expHSP.real() << " " << expHSP.imag() << std::endl;
 	  }           
 	}
       }
@@ -782,9 +787,22 @@ void EData::WriteOutputFiles(const Config &configure, bool isFit) {
     std::string chiOutFile = configure.outputdir+"chiSquared.out";
     chiOut.open(chiOutFile.c_str());
   }
+  chiOut << "Segment#," << " Chi-Squared, " << " N, " << " Norm, " << " Norm-Chi-Squared " << std::endl; 
+  
   if(!(configure.paramMask & Config::CALCULATE_WITH_DATA)) output.SetExtrap();
   bool isVaryNorm=false;
   double totalChiSquared=0.;
+  double totalNormChiSquared=0.;
+  double totalN=0.;
+  //use kinflag.dat to control output option
+  std::ifstream kinoption;
+  kinoption.open("kinflag.dat");
+  int kinflag=0; // 0 cm output, 1 lab output
+  if(kinoption){
+    kinoption >> kinflag;
+    kinoption.close();
+  }
+  if(kinflag!=0) configure.outStream<<"Using alternate output format..."<<std::endl;
   ESegmentIterator firstSumIterator = GetSegments().end();
   for(ESegmentIterator segment=GetSegments().begin();
       segment<GetSegments().end();segment++) {
@@ -805,64 +823,122 @@ void EData::WriteOutputFiles(const Config &configure, bool isFit) {
     std::ostream out(buf);	
     ESegmentIterator thisSegment = segment;
     if(firstSumIterator!=GetSegments().end()) thisSegment = firstSumIterator;
-    for(EPointIterator point=segment->GetPoints().begin();point<segment->GetPoints().end();point++) {
-      out.precision(6);
-      if(segment->IsAngularDist()) {
-	out << std::setw(15) << std::scientific << point->GetCMEnergy();
-	for(int i = 0;i<point->GetNumAngularDists();i++) out << std::setw(15) << point->GetAngularDist(i);
-	out << std::endl;
-      } else {
-	double fitCrossSection=point->GetFitCrossSection();
-	if(firstSumIterator!=GetSegments().end()) {
-	  int pointIndex=point-segment->GetPoints().begin()+1;
-	  for(ESegmentIterator it=firstSumIterator;it<segment;it++) 
-	    fitCrossSection+=it->GetPoint(pointIndex)->GetFitCrossSection();
-	}
-	out << std::setw(15) << std::scientific << point->GetCMEnergy()
-	    << std::setw(15) << std::scientific << point->GetExcitationEnergy()
-	    << std::setw(15) << std::scientific << point->GetCMAngle()
-	    << std::setw(15) << std::scientific << fitCrossSection
-	    << std::setw(15) << std::scientific << fitCrossSection*point->GetSFactorConversion();
-	if(!output.IsExtrap()) {
-	  double dataNorm=thisSegment->GetNorm();
-	  out << std::setw(15) << std::scientific << point->GetCMCrossSection()*dataNorm
-	      << std::setw(15) << std::scientific << point->GetCMCrossSectionError()*dataNorm
-	      << std::setw(15) << std::scientific << point->GetCMCrossSection()*dataNorm*point->GetSFactorConversion()
-	      << std::setw(15) << std::scientific << point->GetCMCrossSectionError()*dataNorm*point->GetSFactorConversion()
-	      << std::endl;
-	} else out << std::endl;
+     
+    if(kinflag==0){
+      for(EPointIterator point=segment->GetPoints().begin();point<segment->GetPoints().end();point++) {
+        out.precision(4);
+        if(segment->IsAngularDist()) {
+	  out << std::setw(13) << std::scientific << point->GetCMEnergy();
+	  for(int i = 0;i<point->GetNumAngularDists();i++) out << std::setw(13) << point->GetAngularDist(i);
+	  out << std::endl;
+        } else {
+	  double fitCrossSection=point->GetFitCrossSection();
+	  if(firstSumIterator!=GetSegments().end()) {
+	    int pointIndex=point-segment->GetPoints().begin()+1;
+	    for(ESegmentIterator it=firstSumIterator;it<segment;it++) 
+	      fitCrossSection+=it->GetPoint(pointIndex)->GetFitCrossSection();
+	  }
+	  out << std::setw(13) << std::scientific << point->GetCMEnergy()
+	      << std::setw(13) << std::scientific << point->GetExcitationEnergy()
+	      << std::setw(13) << std::scientific << point->GetCMAngle()
+	      << std::setw(13) << std::scientific << fitCrossSection
+	      << std::setw(13) << std::scientific << fitCrossSection*point->GetSFactorConversion();
+	  if(!output.IsExtrap()) {
+	    double dataNorm=thisSegment->GetNorm();
+	    out << std::setw(13) << std::scientific << point->GetCMCrossSection()*dataNorm
+	        << std::setw(13) << std::scientific << point->GetCMCrossSectionError()*dataNorm
+	        << std::setw(13) << std::scientific << point->GetCMCrossSection()*dataNorm*point->GetSFactorConversion()
+	        << std::setw(13) << std::scientific << point->GetCMCrossSectionError()*dataNorm*point->GetSFactorConversion()
+	        << std::endl;
+	  } else out << std::endl;
+        }
+      }
+    }
+    if(kinflag==1){
+      for(EPointIterator point=segment->GetPoints().begin();point<segment->GetPoints().end();point++) {
+        out.precision(4);
+        if(segment->IsAngularDist()) {
+	  out << std::setw(13) << std::scientific << point->GetCMEnergy();
+	  for(int i = 0;i<point->GetNumAngularDists();i++) out << std::setw(13) << point->GetAngularDist(i);
+	  out << std::endl;
+        } else {
+	  double fitCrossSection=point->GetFitCrossSection()/point->GetCrossSectionKinFactor();
+	  if(firstSumIterator!=GetSegments().end()) {
+	    int pointIndex=point-segment->GetPoints().begin()+1;
+	    for(ESegmentIterator it=firstSumIterator;it<segment;it++) 
+	      fitCrossSection+=it->GetPoint(pointIndex)->GetFitCrossSection();
+	  }
+	  out << std::setw(13) << std::scientific << point->GetLabEnergy()
+	      << std::setw(13) << std::scientific << point->GetExcitationEnergy()
+	      << std::setw(13) << std::scientific << point->GetLabAngle()
+	      << std::setw(13) << std::scientific << fitCrossSection
+	      << std::setw(13) << std::scientific << fitCrossSection*point->GetSFactorConversion();
+	  if(!output.IsExtrap()) {
+	    double dataNorm=thisSegment->GetNorm();
+	    out << std::setw(13) << std::scientific << point->GetLabCrossSection()*dataNorm
+	        << std::setw(13) << std::scientific << point->GetLabCrossSectionError()*dataNorm
+	        << std::setw(13) << std::scientific << point->GetLabCrossSection()*dataNorm*point->GetSFactorConversion()
+	        << std::setw(13) << std::scientific << point->GetLabCrossSectionError()*dataNorm*point->GetSFactorConversion()
+	        << std::endl;
+	  } else out << std::endl;
+        }
       }
     }
     if(!isFit&&(configure.paramMask & Config::CALCULATE_WITH_DATA)) {
-      totalChiSquared+=thisSegment->GetSegmentChiSquared();
-      chiOut << "Segment #"
-	     << thisSegment->GetSegmentKey() 
-	     << " Chi-Squared/N: "
-	     << thisSegment->GetSegmentChiSquared()/thisSegment->NumPoints()
+      totalChiSquared+=(thisSegment->GetSegmentChiSquared());
+      totalNormChiSquared+=1;
+      totalN+=thisSegment->NumPoints();
+      chiOut << thisSegment->GetSegmentKey()
+             << "," 
+	     << thisSegment->GetSegmentChiSquared()
+             << ","
+             << thisSegment->NumPoints()
+             << ","
+             << thisSegment->GetNorm()
+             << ","
+             //<< thisSegment->GetNormChiSquared()
 	     << std::endl;
     }
     out<<std::endl<<std::endl;out.flush();
     firstSumIterator=GetSegments().end();
   }
   if(!isFit&&(configure.paramMask & Config::CALCULATE_WITH_DATA)) {
-    chiOut << "Total Chi-Squared: " 
-	      << totalChiSquared << std::endl << std::endl;
+    chiOut << "Total-Chi-Squared: " 
+	      << totalChiSquared
+              << " Total-Norm-Chi-Squared: "
+              << totalNormChiSquared 
+              << " Total-N: "
+              << totalN
+              << std::endl << std::endl;
     chiOut.flush();chiOut.close();
-  }  
+  }   
   if(isVaryNorm) {
     std::string outputfile=configure.outputdir+"normalizations.out";
     std::ofstream out(outputfile.c_str());
     if(out) {
-      out.precision(6);
+      out.precision(4);
       out << std::scientific;
+      out << "segment_key_#, file_name, low_angle_bound, high_angle_bound, aframe, low_energy_bound, high_energy_bound, eframe, norm, shift" << std::endl;
       for(ESegmentIterator segment=GetSegments().begin();segment<GetSegments().end();segment++) {
-	if(segment->IsVaryNorm()) out << std::setw(20) << "Segment Key #" << segment->GetSegmentKey()
-				      << std::setw(20) << segment->GetNorm() << std::endl;
+	if(segment->IsVaryNorm()) out << segment->GetSegmentKey() << ","
+                                      << segment->GetDataFile() << ","
+				      << segment->GetMinAngle() << ","
+				      << segment->GetMaxAngle() << ",";
+                                      if(segment->IsCMDifferential()==true){
+                                         out << "CM,";
+                                      } else out << "Lab,";
+                                  out << segment->GetMinEnergy() << ","
+                                      << segment->GetMaxEnergy() << ",";
+                                      if(segment->IsCMDifferential()==true){
+                                         out << "CM,";
+                                      } else out << "Lab,";
+				  out << segment->GetNorm() << ","
+                                      << "0" << std::endl;
       }
       out.flush();
       out.close();
     } else configure.outStream << "Could not write normalization file." << std::endl;
-  }
+  } 
 }
 
 /*!
@@ -904,8 +980,8 @@ int EData::CalculateECAmplitudes(CNuc *theCNuc,const Config& configure) {
 	    int ir=theCNuc->GetPairNumFromKey(segment->GetExitKey());
 	    if(ecLevel->GetECPairNum()==ir) {
 	      if(!(configure.paramMask & Config::USE_PREVIOUS_INTEGRALS)) {
-          if( !(configure.paramMask & Config::USE_API) )
-		        configure.outStream << "\tSegment #" << std::setw(12) << segmentKeyOut << std::setw(0) << " [                         ] 0%"; configure.outStream.flush();
+		configure.outStream << "\tSegment #" << std::setw(12) << segmentKeyOut 
+		          << std::setw(0) << " [                         ] 0%";configure.outStream.flush();
 		int numPoints=segment->NumPoints();
 		int pointIndex=0;
 		time_t startTime = time(NULL);
@@ -936,8 +1012,8 @@ int EData::CalculateECAmplitudes(CNuc *theCNuc,const Config& configure) {
 			progress+='*';
 		      } else progress+=' ';
 		    } progress+="] ";
-        if( !(configure.paramMask & Config::USE_API) )
-		      configure.outStream << "\r\tSegment #" << std::setw(12) << segmentKeyOut << std::setw(0) << progress << percent*100 << '%'; configure.outStream.flush();
+		    configure.outStream << "\r\tSegment #" << std::setw(12) << segmentKeyOut 
+					<< std::setw(0) << progress << percent*100 << '%';configure.outStream.flush();
 		  }
 		}
 		if(configure.stopFlag||localStop) {
@@ -945,7 +1021,8 @@ int EData::CalculateECAmplitudes(CNuc *theCNuc,const Config& configure) {
 		  if(in.is_open()) in.close();
 		  return -1;
 		}
-    if( !(configure.paramMask & Config::USE_API) ) configure.outStream << "\r\tSegment #" << std::setw(12) << segmentKeyOut << std::setw(0) << " [*************************] 100%" << std::endl;
+		configure.outStream << "\r\tSegment #" << std::setw(12) << segmentKeyOut 
+				    << std::setw(0) << " [*************************] 100%" << std::endl;
 	      }
 	      for(EPointIterator point=segment->GetPoints().begin();
 		  point<segment->GetPoints().end();point++) {
@@ -1059,6 +1136,7 @@ void EData::FillMnParams(ROOT::Minuit2::MnUserParameters &p) {
     if(segment->IsVaryNorm()) {
       sprintf(varname,"segment_%d_norm",segment->GetSegmentKey());
       p.Add(varname,segment->GetNorm(),segment->GetNorm()*0.05);
+      p.SetLowerLimit(varname,0.0);
     }
     if(segment->IsTotalCapture()) segment+=segment->IsTotalCapture()-1;
   }

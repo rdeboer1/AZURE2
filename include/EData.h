@@ -38,7 +38,7 @@ class EData {
   int Initialize(CNuc*,const Config&);
   void AddSegment(ESegment);
   void PrintData(const Config&);
-  void CalcLegendreP(int);
+  void CalcLegendreP(int,CNuc*);
   void PrintLegendreP(const Config&);
   int CalcEDependentValues(CNuc*,const Config&);
   void PrintEDependentValues(const Config&,CNuc*);

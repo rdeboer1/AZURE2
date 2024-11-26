@@ -34,8 +34,6 @@ EPoint::EPoint(DataLine dataLine, ESegment *parent) {
   lab_dcrosssection_=dataLine.error();
   geofactor_=0.;
   fitcrosssection_=0.;
-  fitE1crosssection_=0.;
-  fitE2crosssection_=0.;  
   sfactorconv_=0.;
   is_differential_=parent->IsDifferential();
   is_phase_=parent->IsPhase();
@@ -47,6 +45,8 @@ EPoint::EPoint(DataLine dataLine, ESegment *parent) {
   targetEffectNum_=0;
   parentData_=NULL;
   stoppingPower_=0.0;
+  angleKinFactor_=1.0;
+  crossSectionKinFactor_=1.0;
 }
  
 /*!
@@ -80,6 +80,8 @@ EPoint::EPoint(double angle, double energy, ESegment* parent) {
   targetEffectNum_=0;
   parentData_=NULL;
   stoppingPower_=0.0;
+  angleKinFactor_=1.0;
+  crossSectionKinFactor_=1.0;
 }
   
 /*!
@@ -335,14 +337,6 @@ double EPoint::GetFitCrossSection() const {
   return fitcrosssection_;
 }
 
-double EPoint::GetFitE1CrossSection() const {
-  return fitE1crosssection_;
-}
-
-double EPoint::GetFitE2CrossSection() const {
-  return fitE2crosssection_;
-}
-
 /*!
  * Returns the multiplicative conversion factor from cross section to s-factor.
  */
@@ -391,6 +385,22 @@ double EPoint::GetTargetThickness() const {
 
 double EPoint::GetAngularDist(int order) const {
   return angularDists_[order];
+}
+
+/*!
+ * Returns the kinematic factor to convert angle from lab to cm angle;
+ */
+
+double EPoint::GetAngleKinFactor() const {
+  return angleKinFactor_;
+}
+
+/*!
+ * Returns the kinematic factor to convert cross section from lab to cm angle;
+ */
+
+double EPoint::GetCrossSectionKinFactor() const {
+  return crossSectionKinFactor_;
 }
 
 /*!
@@ -464,7 +474,7 @@ EnergyMap EPoint::GetMap() const {
 void EPoint::Initialize(CNuc *compound,const Config &configure) {
   this->CalcEDependentValues(compound,configure);
   if(this->IsDifferential()) 
-    this->CalcLegendreP(configure.maxLOrder,NULL);
+    this->CalcLegendreP(configure.maxLOrder,compound,NULL);
   this->CalcCoulombAmplitude(compound);
   if(configure.paramMask & Config::USE_EXTERNAL_CAPTURE) this->CalculateECAmplitudes(compound,configure);
 }
@@ -479,6 +489,15 @@ void EPoint::ConvertLabEnergy(PPair *pPair) {
   cm_energy_=this->GetLabEnergy()*
     (pPair->GetM(2))/
     (pPair->GetM(1)+pPair->GetM(2));
+  excitation_energy_=cm_energy_+pPair->GetSepE();
+}
+
+/*!
+ * Calculates excitation energy. When a data point is initialized, only the excitation energy is calculated
+ * if the data is already in the center of mass frame. Else it is calculated by ConvertLabEnergy.  
+ */
+
+void EPoint::ConvertExcitationEnergy(PPair *pPair) {
   excitation_energy_=cm_energy_+pPair->GetSepE();
 }
 
@@ -537,6 +556,35 @@ void EPoint::ConvertLabAngle(PPair *entrancePair, PPair *exitPair, const Config&
   
   cm_angle_=180./pi*asin(sqrt(E3PerEt/a24)*sin(this->GetLabAngle()*pi/180.));
   if(switchDomain) cm_angle_ = 180.- cm_angle_;
+  //define angle kin factor to convert back to lab frame
+  angleKinFactor_=this->GetLabAngle()/cm_angle_;
+  this->SetAngleKinFactor(angleKinFactor_);
+}
+
+/*!
+ * Calculates center of mass angles as in ConvertLabAngle but uses the reletivistic equations of Iliadis C.37 and C.38.  
+ * When a data point is initialized, the same angle is copied into
+ * the attributes for center of mass and lab angles.  If this function is called, the center of mass angle
+ * attribute is overwritten with the value calculated from the lab angle attribute.  This version of the
+ * overloaded function is for non-elastic particle channels.
+ */
+
+void EPoint::ConvertCMAngle(PPair *entrancePair, PPair *exitPair, const Config& configure) {
+  double qValue=entrancePair->GetSepE()+entrancePair->GetExE()-exitPair->GetSepE()-exitPair->GetExE();
+  double gamma=sqrt(entrancePair->GetM(1)*exitPair->GetM(1)*this->GetLabEnergy()/(exitPair->GetM(1)*
+   (exitPair->GetM(1)+exitPair->GetM(2))*qValue+exitPair->GetM(1)*(exitPair->GetM(1)+exitPair->GetM(2)
+   -entrancePair->GetM(1))*this->GetLabEnergy()));
+  double temp_lab_angle=180./pi*acos((gamma+cos(this->GetCMAngle()*pi/180.))/sqrt(1+gamma*gamma+2.*gamma*cos(this->GetCMAngle()*pi/180.)));
+//  std::cout<<temp_lab_angle<<std::endl;
+}
+
+/*!
+ * Calculates center of mass angles for gamma rays for the relativistic correction.
+ */
+void EPoint::ConvertLabAngleGammas(PPair *entrancePair) {
+  double beta = sqrt(this->GetLabEnergy()*(this->GetLabEnergy()+2.0*entrancePair->GetM(1)*uconv))/
+    ((entrancePair->GetM(1)+entrancePair->GetM(2))*uconv + this->GetLabEnergy());
+  cm_angle_ = 180./pi*acos((cos(this->GetLabAngle()*pi/180.)-beta)/(1-beta*cos(this->GetLabAngle()*pi/180.)));
 }
 
 /*!
@@ -567,7 +615,52 @@ void EPoint::ConvertCrossSection(PPair *entrancePair, PPair *exitPair) {
   }
   cm_crosssection_=this->GetLabCrossSection()*conversionFactor;
   cm_dcrosssection_=this->GetLabCrossSectionError()*conversionFactor;
+  crossSectionKinFactor_=conversionFactor;
+  this->SetCrossSectionKinFactor(crossSectionKinFactor_);
 }
+
+/*!
+ * Calculates center of mass cross sections for gamma rays.
+ */
+
+void EPoint::ConvertCrossSectionGammas(PPair *entrancePair) {
+
+  double conversionFactor;
+
+  double beta = sqrt(this->GetLabEnergy()*(this->GetLabEnergy()+2.0*entrancePair->GetM(1)*uconv))/
+    ((entrancePair->GetM(1)+entrancePair->GetM(2))*uconv + this->GetLabEnergy());
+  
+  conversionFactor = pow(1.0-beta,2.0)/(1-beta*cos(this->GetLabAngle()*pi/180.0));
+  cm_crosssection_=this->GetLabCrossSection()*conversionFactor;
+  cm_dcrosssection_=this->GetLabCrossSectionError()*conversionFactor;
+}
+
+/*!
+ * Calculates Legendre polynomial coefficient reference frame correction up to a maximum order.  The factors are added, in order, to a vector.
+ */
+/*
+void EPoint::ConvertLabQCoeff(int maxL, TargetEffect* targetEffect, PPair *entrancePair, PPair *exitPair) {
+  double m1=entrancePair->GetM(1);
+  double m2=entrancePair->GetM(2);
+  double m3=exitPair->GetM(1);
+  double m4=exitPair->GetM(2);
+  double e1=this->GetLabEnergy();
+  double qValue=entrancePair->GetSepE()+entrancePair->GetExE()-exitPair->GetSepE()-exitPair->GetExE();
+  double gamma = m1*m3/m2/m4*e1/(e1+qValue);
+  for (int L=0;L<=maxL;lOrder++){
+    double U=0;
+    for (int L_p=0;L_p<=maxL;L_p++){
+      if(L==L_p) U = 1.0-gamma*gamma*L_p*(L_p+1.0)*(2.0*L_p*L_p+2.0*L_p-3.0)/2.0/(2.0*L_p-1)/(2.0*L_p+3.0);
+      else if (L_p == L+1) U = 1.0*gamma*L_p*(L_p-1.0)/(2.0*L_p-1.0);
+      else if (L_p == L-1) U = -1.0*gamma*(L_p+1.0)*(L_p+2.0)/(2.0*L_p+3.0);
+      else if (L_p == L-2) U = gamma*gamma*(L_p+1.0)*(L_p+2.0)*(L_p+3.0)*(L_p+3.0)/2.0/(2.0*L_p+3.0)/(2.0*L_p+5.0);
+      else if (L_p == L+2) U = gamma*gamma*L_p*(L_p-1)*(L_p-2)*(L_p-2)/2/(2*L_p-1)/(2*L_p-3);
+    }
+    U = U*(2.0*L+1.0)/(2.0*L_p+1.0);
+    std::cout<<U<<std::endl;
+  }
+}
+*/
 
 /*!
  * Adds a Legendre polynomial to the vector.  Polynomials are added to the vector in the order as L=0,1,2,...
@@ -593,14 +686,6 @@ void EPoint::SetFitCrossSection(double crossSection) {
   fitcrosssection_=crossSection;
 }
 
-void EPoint::SetFitE1CrossSection(double e1crossSection) {
-  fitE1crosssection_= e1crossSection;
-}
-
-void EPoint::SetFitE2CrossSection(double e2crossSection) {
-  fitE2crosssection_= e2crossSection;
-}
-
 /*!
  * Sets the multiplicative conversion from cross section to s-factor.
  */
@@ -618,19 +703,86 @@ void EPoint::SetExitKey(int key) {
 }
 
 /*!
+ * Sets the kinematic factor to convert angle from lab to cm angle;
+ */
+
+void EPoint::SetAngleKinFactor(double anglekinfactor) {
+  angleKinFactor_=anglekinfactor;
+}
+
+/*!
+ * Sets the kinematic factor to convert cross section from lab to cm angle;
+ */
+
+void EPoint::SetCrossSectionKinFactor(double crosssectionkinfactor) {
+  crossSectionKinFactor_=crosssectionkinfactor;
+}
+
+/*!
  * Calculates Legendre polynomials up to a maximum order.  The polynomials are added, in order, to a vector.
  */
 
-void EPoint::CalcLegendreP(int maxL,TargetEffect* targetEffect) {
+void EPoint::CalcLegendreP(int maxL, CNuc *theCNuc, TargetEffect* targetEffect) {
+  double Qcm[maxL];
+  memset( Qcm, 1, maxL*sizeof(double) );
+  //double Qcm[maxL]={1.0};
+  if(targetEffect && targetEffect->NumQCoefficients()>0 && theCNuc->GetPair(theCNuc->GetPairNumFromKey(this->GetEntranceKey()))->GetPType()==0){
+    PPair *entrancePair=theCNuc->GetPair(theCNuc->GetPairNumFromKey(this->GetEntranceKey()));
+    PPair *exitPair=theCNuc->GetPair(theCNuc->GetPairNumFromKey(this->GetExitKey()));
+    double m1=entrancePair->GetM(1);
+    double m2=entrancePair->GetM(2);
+    double m3=exitPair->GetM(1);
+    double m4=exitPair->GetM(2);
+    double e1=this->GetLabEnergy();
+    double qValue=entrancePair->GetSepE()+entrancePair->GetExE()-exitPair->GetSepE()-exitPair->GetExE();
+    double gamma = m1*m3/m2/m4*e1/(e1+qValue);
+    int numQ = targetEffect->NumQCoefficients();
+    double U[numQ][numQ];
+    memset( U, 0.0, numQ*numQ*sizeof(double) );
+    //double U[numQ][numQ]={0.0};
+    for (int lOrder=0;lOrder<numQ;lOrder++){    
+      for (int lOrder_p=0;lOrder_p<numQ;lOrder_p++){
+        double tempU=0.0;
+        if(lOrder_p==lOrder) tempU = 1.0-gamma*gamma*lOrder_p*(lOrder_p+1.0)*(2.0*lOrder_p*lOrder_p+2.0*lOrder_p-3.0)/2.0/(2.0*lOrder_p-1)/(2.0*lOrder_p+3.0);
+        else if (lOrder_p == lOrder+1) tempU = 1.0*gamma*lOrder_p*(lOrder_p-1.0)/(2.0*lOrder_p-1.0);
+        else if (lOrder_p == lOrder-1) tempU = -1.0*gamma*(lOrder_p+1.0)*(lOrder_p+2.0)/(2.0*lOrder_p+3.0);
+        else if (lOrder_p == lOrder-2) tempU = gamma*gamma*(lOrder_p+1.0)*(lOrder_p+2.0)*(lOrder_p+3.0)*(lOrder_p+3.0)/2.0/(2.0*lOrder_p+3.0)/(2.0*lOrder_p+5.0);
+        else if (lOrder_p == lOrder+2) tempU = gamma*gamma*lOrder_p*(lOrder_p-1.0)*(lOrder_p-2.0)*(lOrder_p-2.0)/2.0/(2.0*lOrder_p-1.0)/(2.0*lOrder_p-3.0);
+        else tempU = 0.0;
+        U[lOrder][lOrder_p] = tempU*(2.0*lOrder+1.0)/(2.0*lOrder_p+1.0);
+//        std::cout<<"test"<<std::endl;              
+      }    
+    }
+    double B[numQ];
+    memset( B, 0.0, numQ*sizeof(double) );
+    //double B[numQ] = {0.0};
+    for (int lOrder=0;lOrder<numQ;lOrder++){    
+      for (int lOrder_p=0;lOrder_p<numQ;lOrder_p++){
+        B[lOrder] += U[lOrder][lOrder_p]*targetEffect->GetQCoefficient(lOrder_p);
+      }
+//      std::cout<<"B = " << B[lOrder] <<", Q = "<<targetEffect->GetQCoefficient(lOrder)<<" numQ = "<<numQ<<std::endl;
+    }
+    for (int lOrder=0;lOrder<maxL;lOrder++){
+      if(lOrder<numQ){
+        Qcm[lOrder] = B[lOrder];
+        //std::cout<<Qcm[lOrder]<<std::endl;
+      }
+      else {
+        Qcm[lOrder] = 1.;
+        //std::cout<<Qcm[lOrder]<<std::endl;
+      }    
+    } 
+  }
+   
   double x=cos(this->GetCMAngle()*pi/180.0);
   if(maxL>=0) {
     if(targetEffect && targetEffect->NumQCoefficients()>0)
-      this->AddLegendreP(targetEffect->GetQCoefficient(0));
+      this->AddLegendreP(Qcm[0]);
     else this->AddLegendreP(1.0);
     double polyMinusTwo=1.0;
     if(maxL>=1) {
       if(targetEffect && targetEffect->NumQCoefficients()>1)
-	this->AddLegendreP(x*targetEffect->GetQCoefficient(1));
+	this->AddLegendreP(x*Qcm[1]);
       else this->AddLegendreP(x);
       double polyMinusOne=x;
       if(maxL>=2) {
@@ -638,7 +790,7 @@ void EPoint::CalcLegendreP(int maxL,TargetEffect* targetEffect) {
 	  double poly=(2.0*lOrder-1.0)/lOrder*x*polyMinusOne-
 	    (lOrder-1.0)/lOrder*polyMinusTwo;
 	  if(targetEffect && targetEffect->NumQCoefficients()>lOrder)
-	    this->AddLegendreP(poly*targetEffect->GetQCoefficient(lOrder));
+	    this->AddLegendreP(poly*Qcm[lOrder]);
 	  else this->AddLegendreP(poly);
 	  polyMinusTwo=polyMinusOne;
 	  polyMinusOne=poly;
@@ -647,9 +799,11 @@ void EPoint::CalcLegendreP(int maxL,TargetEffect* targetEffect) {
     }
   }
   for(int i=1;i<=this->NumSubPoints();i++) {
-    this->GetSubPoint(i)->CalcLegendreP(maxL, targetEffect);
+    this->GetSubPoint(i)->CalcLegendreP(maxL, theCNuc, targetEffect);
   }
 }
+
+
 
 /*!
  * This function calculates several energy dependent quantities simultaniously.
@@ -697,6 +851,13 @@ void EPoint::CalcEDependentValues(CNuc *theCNuc, const Config& configure) {
 	    this->AddSqrtPenetrability(j,ch,0.0);
 	    this->AddExpCoulombPhase(j,ch,1.0);
 	    this->AddExpHardSpherePhase(j,ch,1.0);
+//            if(ch==1){
+//            std::ofstream coul_check;
+//            coul_check.open("coul_check_neg.chk",std::ios::app);
+//            coul_check << this->GetCMEnergy() << "  " << lValue << "  " << eta << "  " << coul.F << "  " << coul.dF << "  " << coul.G << "  " << coul.dG << std::endl;
+//            coul_check << this->GetEntranceKey() << "," << this->GetCMEnergy() << "," << lValue << "," << 0.0 << "," << localShift << std::endl;
+//            coul_check.close();
+//	    }
 	  } else {
 	    CoulFunc theCoulombFunction(thePair,!!(configure.paramMask&Config::USE_GSL_COULOMB_FUNC));
 	    double radius=thePair->GetChRad();
@@ -707,6 +868,7 @@ void EPoint::CalcEDependentValues(CNuc *theCNuc, const Config& configure) {
 	    double redmass=thePair->GetRedMass();
 	    double eta=sqrt(uconv/2.)*fstruc*thePair->GetZ(1)*thePair->GetZ(2)*
 	      sqrt(redmass/localEnergy);
+            double rho = sqrt(2.*uconv)/hbarc*radius*sqrt(redmass*localEnergy);
 	    complex expCP(1.0,0.0);
 	    for(int ll=1;ll<=theChannel->GetL();ll++) 
 	      expCP*=complex((double)ll/sqrt(pow(eta,2.0)+pow((double)ll,2.0)),
@@ -719,6 +881,15 @@ void EPoint::CalcEDependentValues(CNuc *theCNuc, const Config& configure) {
 	    this->AddSqrtPenetrability(j,ch,sqrt(localPene));
 	    this->AddExpCoulombPhase(j,ch,expCP);
 	    this->AddExpHardSpherePhase(j,ch,expHSP);
+//            if(ch==1){
+//            std::ofstream coul_check;
+//            coul_check.open("coul_check_pos.chk",std::ios::app);
+//            coul_check << this->GetLabEnergy() << "  " << lValue << "  " << rho << "  " << eta << "  "
+//                       << coul.F << "  " << coul.dF << "  " << coul.G << "  " << coul.dG << std::endl;
+//            coul_check << this->GetEntranceKey() << "," << this->GetCMEnergy() << "," << lValue << "," << expHSP << "," << localShift << std::endl;
+//            coul_check.close();
+//            }
+            
 	  }
 	} else if(thePair->GetPType()==10){
 	  complex loElement = complex(0.0,0.0);
@@ -869,7 +1040,7 @@ void EPoint::CalculateECAmplitudes(CNuc *theCNuc, const Config& configure) {
 		CoulFunc theCoulombFunction(entrancePair,!!(configure.paramMask&Config::USE_GSL_COULOMB_FUNC));
 		struct CoulWaves 
 		  coul=theCoulombFunction(theECMGroup->GetL(),entrancePair->GetChRad(),
-					  this->GetCMEnergy());	
+					  this->GetCMEnergy());		
 		double eta=sqrt(uconv/2.)*fstruc*entrancePair->GetZ(1)*entrancePair->GetZ(2)*
 		  sqrt(entrancePair->GetRedMass()/this->GetCMEnergy());
 		complex expCP(1.0,0.0);
@@ -1077,7 +1248,7 @@ void EPoint::IntegrateTargetEffect() {
       }
       outerCounter++;
     }
-    yield=outerIntegral;
+    yield=outerIntegral/(targetEffect->GetDensity()*1.E-24);
   } else if(targetEffect->IsConvolution()) {
     double intFirst=0.0;
     double intEvenSum=0.0;
@@ -1116,7 +1287,7 @@ void EPoint::IntegrateTargetEffect() {
 	  if(i>=2) integral=energyStep/3.0*(intFirst+4.0*intOddSum+2.0*intEvenSum-3.0*integrand);
       }
     }
-    yield=integral;    
+    yield=integral/(targetEffect->GetDensity()*1.E-24);    
   }
   this->SetFitCrossSection(yield);
 }

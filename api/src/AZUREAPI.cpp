@@ -184,8 +184,8 @@ int AZUREAPI::UpdateSegments(vector_r& p) {
       if(!data[k].IsMapped()) data[k].Calculate(localCompound,configure());
 
       cross.push_back( data[k].GetFitCrossSection() );
-      crossE1.push_back( data[k].GetFitE1CrossSection() );
-      crossE2.push_back( data[k].GetFitE2CrossSection() );
+      //crossE1.push_back( data[k].GetFitE1CrossSection() );
+      //crossE2.push_back( data[k].GetFitE2CrossSection() );
       energies.push_back( data[k].GetCMEnergy( ) );
       conv.push_back( data[k].GetSFactorConversion() );
 
@@ -193,8 +193,8 @@ int AZUREAPI::UpdateSegments(vector_r& p) {
 
     calculatedConv_.push_back( conv );
     calculatedSegments_.push_back( cross );
-    calculatedSegmentsE1_.push_back( crossE1 );
-    calculatedSegmentsE2_.push_back( crossE2 );
+    //calculatedSegmentsE1_.push_back( crossE1 );
+    //calculatedSegmentsE2_.push_back( crossE2 );
     calculatedEnergies_.push_back( energies );
 
   }

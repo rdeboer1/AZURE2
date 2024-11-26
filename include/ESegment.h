@@ -20,6 +20,7 @@ class ESegment {
   ESegment(ExtrapLine); 
   bool IsInSegment(EPoint);
   bool IsDifferential() const;
+  bool IsCMDifferential() const;
   bool IsPhase() const;
   bool IsTargetEffect() const;
   bool IsVaryNorm() const;
@@ -57,6 +58,7 @@ class ESegment {
   std::vector<EPoint>& GetPoints();
  private:
   bool isdifferential_;
+  bool iscmdifferential_;
   bool isphase_;
   bool isTargetEffect_;
   bool varyNorm_;
