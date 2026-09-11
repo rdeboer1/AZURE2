@@ -311,6 +311,46 @@ AdaptiveIntegrationGrid::IdentifyResonances(double startEnergy, double endEnergy
       // *observed* width, matching CNuc::TransformOut / parameters.out.
       double totalWidth = 0.0;
       double normSum = 0.0;
+      // Before the input transformation has run (which is the case whenever
+      // the data structures -- and so these grids -- are filled), GetGamma()
+      // still holds the values as read: the observed partial width in eV for
+      // an open particle channel, an ANC for a closed one, Gamma_gamma in eV
+      // for a photon channel.  Those are the widths directly; running them
+      // through 2 gamma^2 P as if they were amplitudes gave every resonance a
+      // width of order 2P/(dS/dE), independent of the level (a 0.6 keV 2+ in
+      // 12C+alpha came out 0.8 MeV wide and was never resolved).
+      if (config_.inputWidthsArePhysical) {
+        double particleWidthEV = 0.0;
+        double gammaWidthEV = 0.0;
+        for (int ch = 1; ch <= numChannels; ch++) {
+          AChannel *channel = jgroup->GetChannel(ch);
+          PPair *chPair = compound->GetPair(channel->GetPairNum());
+          double gamma = std::abs(level->GetGamma(ch));
+          if (gamma <= 0.0) continue;
+          if (channel->GetRadType() == 'P') {
+            double localEnergy = level->GetE() - chPair->GetExE() - chPair->GetSepE();
+            if (localEnergy <= 0.0) continue;  // closed channel: the value is an ANC
+            particleWidthEV += gamma;
+          } else if (channel->GetRadType() == 'M' || channel->GetRadType() == 'E') {
+            gammaWidthEV += gamma;
+          }
+        }
+        double particleWidth = particleWidthEV * 1.0e-6;
+        double totalWidthMeV = (particleWidthEV + gammaWidthEV) * 1.0e-6;
+        if (DebugGridEnabled()) {
+          fprintf(stderr, "[AZR_DEBUG_GRID]     level E=%.6f: input widths particle=%.6e eV gamma=%.6e eV\n",
+                  level->GetE(), particleWidthEV, gammaWidthEV);
+        }
+        double margin = particleWidth * config_.resonanceWidthMultiplier;
+        if (levelCMEnergy >= endEnergy - margin && levelCMEnergy <= startEnergy + margin) {
+          ResonanceInfo resInfo;
+          resInfo.energy = levelCMEnergy;
+          resInfo.totalWidth = totalWidthMeV;
+          resInfo.particleWidth = particleWidth;
+          resonances.push_back(resInfo);
+        }
+        continue;
+      }
       for (int ch = 1; ch <= numChannels; ch++) {
         AChannel *channel = jgroup->GetChannel(ch);
         if (channel->GetRadType() != 'P') continue;  // particle channels

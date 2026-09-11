@@ -1077,3 +1077,30 @@ complete:
 | snapshots | `save_fit_to_azr.py` |
 | model internals | `coulomb_functions.py`, `ec_integrals.py`, `channel_radius_scan.py`, `nuclear_potential.py` |
 | data | `exfor_fetch.py` |
+- **Beam-profile (photodissociation / TPC fine-splitting) experimental effect** (added
+  2026-09-10, `R-matrix/12C+a_onefile/9-10-26_Haversen_test/`): for data taken in a broad,
+  skewed γ beam with event-by-event energy reconstruction (HIγS TPCs), the point-centred
+  Gaussian convolution is the wrong kernel — the beam profile is *absolute* and each point is
+  an energy slice `[a,b]` of it seen through the detector resolution. `TargetEffect` now has a
+  `beamprofile N {xi omega alpha w}xN tpcSigma nCut dbFlag` trailing block on the `<targetInt>`
+  line (all energies **lab entrance-channel MeV**; `dbFlag=1` adds the detailed-balance weight
+  so a capture cross section is averaged the way the inverse measurement was), the per-point
+  window comes from optional **columns 5-6 of the data file**, and
+  `AzrModel.add_target_effect(segments, beam_profile=[...], tpc_sigma=..., photodissociation=True)`
+  writes it. One segment per nominal beam energy, one targetInt line per segment, mirror the data
+  segments as inactive `<segmentsTest>` lines so the keys line up. Also new: isDiff 5/6 (E1/E2-only)
+  segments now integrate their component over sub-points (they read a never-set value before).
+  Validated against an independent numpy kernel (`kernel_reference.py` there); regression project
+  `tests/beam_profile_kernel/`. The GUI reads, edits and writes the tokens too
+  ("Include Beam Profile" in the experimental-effect dialog; round trip covered by
+  `tests/gui/target_int_tab_test.cpp`), so a project survives a load-and-save there --
+  but note the GUI writes the profile numbers with 12 significant digits, against
+  pyazr's 17: harmless next to any real beam width, worth knowing if you diff files.
+
+- `<targetInt>` convolution-equation coefficients are bound ASCENDING: TargetEffect.cpp does
+  `convolutionEq_.SetParameter(i, convCoefficients[i])` and Equation.cpp resolves `aN` to
+  `parameters_[N]`, so the first value in the list is a0 (the lowest power in the equation
+  string). Writing them descending silently applies a different resolution -- on 13C+a
+  segment 92 it made the applied sigma 20% too wide (0.811 vs 0.675 keV at the resonance)
+  and changed a fitted neutron width from 0.61 to 0.44 keV. Check a new entry by evaluating
+  sigma at a known energy before trusting a fit that uses it.

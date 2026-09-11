@@ -1103,6 +1103,87 @@ class AzrModel:
         self._suffix = "\n".join(lines[:start + 1] + lines[end:])
         return self
 
+    # -- experimental effects (edits the <targetInt> block) -------------------
+
+    def target_effects(self):
+        """The raw ``<targetInt>`` lines (one experimental effect each)."""
+        lines = self._suffix.splitlines()
+        try:
+            start = lines.index("<targetInt>") + 1
+            end = lines.index("</targetInt>")
+        except ValueError:
+            return []
+        return [ln for ln in lines[start:end] if ln.strip()]
+
+    def _splice_target_int(self, new_lines):
+        lines = self._suffix.splitlines()
+        try:
+            start = lines.index("<targetInt>")
+            end = lines.index("</targetInt>")
+        except ValueError:
+            self._suffix = (self._suffix.rstrip("\n") + "\n\n<targetInt>\n"
+                            + "\n".join(new_lines) + "\n</targetInt>\n")
+            return
+        self._suffix = "\n".join(lines[:start + 1] + new_lines + lines[end:])
+
+    def clear_target_effects(self):
+        """Remove every ``<targetInt>`` line (leave the block empty)."""
+        self._splice_target_int([])
+        return self
+
+    def add_target_effect(self, segments, n_points=200, gaussian_sigma=None,
+                          beam_profile=None, tpc_sigma=0.0, truncation=0.0,
+                          photodissociation=False, q_coefficients=None,
+                          resonance_width_multiplier=20.0, points_per_width=50.0,
+                          active=True):
+        """Append one experimental effect (a ``<targetInt>`` line).
+
+        ``segments`` is the segment-key list as AZURE2 writes it (``"3"``,
+        ``"3-5"``, ``"3,7-9"`` or an iterable of ints).  Keys count *every*
+        ``<segmentsData>`` line, active or not, and a ``<segmentsTest>`` line
+        with the same key gets the effect too (see the azure2-eval skill).
+
+        ``gaussian_sigma`` (lab MeV) is the classic beam-energy Gaussian
+        convolution.  ``beam_profile`` is the beam-profile kernel: a list of
+        ``(xi, omega, alpha, weight)`` skewed-Gaussian components in lab
+        entrance-channel energy (MeV), with the detector energy resolution
+        ``tpc_sigma`` (lab MeV; the per-point energy window comes from
+        columns 5-6 of the data file), an optional ``truncation`` of each
+        component at mean +- n standard deviations (0 = none) and, for the
+        inverse reaction of a photodissociation measurement,
+        ``photodissociation=True`` to weight the average with the
+        detailed-balance factor.  ``q_coefficients`` are the finite-geometry
+        attenuation coefficients Q_0..Q_n.  Target integration and straggling
+        are not exposed here.  Returns ``self``.
+        """
+        if not isinstance(segments, str):
+            segments = ",".join(str(int(k)) for k in segments)
+        toks = [1 if active else 0, f'"{segments}"', int(n_points)]
+        if gaussian_sigma is not None:
+            toks += [1, _fmt(gaussian_sigma)]
+        else:
+            toks += [0, 0]
+        toks += [0, 0, '""', 0]                        # no target integration
+        if q_coefficients:
+            toks += [1, len(q_coefficients)] + [_fmt(q) for q in q_coefficients]
+        else:
+            toks += [0, 0]
+        toks += [0, '""', 0]                           # no energy-dependent sigma
+        toks += [0, 0.04, _fmt(resonance_width_multiplier), _fmt(points_per_width)]
+        if beam_profile:
+            toks += ["beamprofile", len(beam_profile)]
+            for xi, omega, alpha, weight in beam_profile:
+                toks += [_fmt(xi), _fmt(omega), _fmt(alpha), _fmt(weight)]
+            toks += [_fmt(tpc_sigma), _fmt(truncation), 1 if photodissociation else 0]
+        line = "  ".join(t if isinstance(t, str) else _fmt(t) for t in toks)
+        lines = self._suffix.splitlines()
+        if "<targetInt>" in lines:
+            end = lines.index("</targetInt>")
+            self._suffix = "\n".join(lines[:end] + [line] + lines[end:])
+        else:
+            self._splice_target_int([line])
+        return self
+
     # -- rendering ------------------------------------------------------------
 
     def __str__(self):
