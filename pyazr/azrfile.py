@@ -333,6 +333,29 @@ class AzrLevel:
         j = int(self.J) if float(self.J).is_integer() else f"{int(round(2*self.J))}/2"
         return f"{j}{'+' if self.parity > 0 else '-'}"
 
+    @property
+    def active(self):
+        """Is the level active (the ``isActive`` field of its lines)?
+
+        AZURE2 skips every ``<levels>`` line whose ``isActive`` is 0
+        (``CNuc::Fill``), so an inactive level is invisible to the engine: it
+        gets no parameters and does not count in the engine's level numbering.
+        The flag is per line, but a level whose lines disagree is not something
+        the engine can represent consistently, so that raises here.
+        """
+        flags = {c.active for c in self.channels}
+        if len(flags) != 1:
+            raise ValueError(
+                f"level {self.jpi} at {self.energy} MeV has both active and "
+                f"inactive channel lines; AZURE2 reads them line by line, so "
+                f"the level would be half present.")
+        return flags.pop()
+
+    def set_active(self, active):
+        """Set the ``isActive`` flag on every channel line of the level."""
+        for c in self.channels:
+            c._set("isActive", 1 if active else 0)
+
     def set_energy(self, energy):
         """Set the level energy on every channel line of the level."""
         for c in self.channels:
@@ -838,9 +861,19 @@ class AzrModel:
         energy-based key cannot identify it.
 
         Both indices are 1-based, as the API reports them.
+
+        **Inactive levels are skipped**, because the engine skips them
+        (``CNuc::Fill`` reads only lines with ``isActive == 1``): an inactive
+        line neither opens a J-group nor takes a level number.  Counting them
+        here shifted every later level of the group by one, so a fit applied
+        through :meth:`apply_fit` landed one level early -- the 13C+alpha
+        archive's 5/2+ block was silently corrupted that way at two bakes.
+        Use :meth:`purge_inactive_levels` to remove such lines for good.
         """
         order, seen, out = [], {}, {}
         for lv in self.levels:
+            if not lv.active:
+                continue
             k = (int(round(2 * lv.J)), int(lv.parity))
             if k not in seen:
                 order.append(k)
@@ -848,6 +881,26 @@ class AzrModel:
             seen[k] += 1
             out[(order.index(k) + 1, seen[k])] = lv
         return out
+
+    @property
+    def active_levels(self):
+        """The levels AZURE2 will actually read (``isActive == 1``), in file order."""
+        return [lv for lv in self.levels if lv.active]
+
+    def purge_inactive_levels(self):
+        """Delete every inactive level from the file.  Returns the removed
+        :class:`AzrLevel` objects.
+
+        An inactive level contributes nothing to the engine, but it is a trap
+        for anything that numbers levels from the file text (older versions of
+        :meth:`engine_level_keys`, hand edits, the GUI's level table), so a
+        model that is going to be edited or baked programmatically is safer
+        without them.  Level IDs are renumbered on the next write.
+        """
+        gone = [lv for lv in self.levels if not lv.active]
+        self.levels = [lv for lv in self.levels if lv.active]
+        self._renumber()
+        return gone
 
     def apply_fit(self, parameters, x, transform=None, physical=False,
                   pairs=None, strict=True):
@@ -993,6 +1046,41 @@ class AzrModel:
             elif inside and s and file_substr in line:
                 t = line.split()
                 t[0] = "1" if active else "0"
+                line = " ".join(t)
+                changed += 1
+            out.append(line)
+        self._suffix = "\n".join(out)
+        if changed == 0:
+            raise KeyError(f"no <segmentsData> line matches {file_substr!r}.")
+        return changed
+
+    def set_segment_energy_range(self, file_substr, energy_min=None,
+                                 energy_max=None):
+        """Cap or widen the lab-energy window of every ``<segmentsData>`` line
+        matching ``file_substr`` (the ``minE`` / ``maxE`` fields, lab MeV).
+        A ``None`` leaves that bound as it is.  Returns the number of lines
+        changed.
+
+        AZURE2 only loads the data points inside the window, so this is how an
+        energy-stepped fit grows its data set -- and, like any change to the
+        loaded grid, it invalidates ``output/intEC.dat`` (delete it, or give
+        the edited model its own output directory).
+        """
+        if "<segmentsData>" not in self._suffix:
+            raise ValueError("no <segmentsData> block to edit.")
+        out, changed, inside = [], 0, False
+        for line in self._suffix.splitlines():
+            s = line.strip()
+            if s == "<segmentsData>":
+                inside = True
+            elif s == "</segmentsData>":
+                inside = False
+            elif inside and s and file_substr in line:
+                t = line.split()
+                if energy_min is not None:
+                    t[3] = _fmt(float(energy_min))
+                if energy_max is not None:
+                    t[4] = _fmt(float(energy_max))
                 line = " ".join(t)
                 changed += 1
             out.append(line)
